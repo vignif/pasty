@@ -1,44 +1,40 @@
 import sqlite3
-import threading
-from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 import os
 from dotenv import load_dotenv
 import random
 import string
+from contextlib import contextmanager
 
 load_dotenv()
 
-EXPIRATION_HOURS = int(os.getenv("EXPIRATION_HOURS", 72))
+# Constants
+EXPIRATION_HOURS = int(os.getenv("EXPIRATION_HOURS", 24))
+# Determine database location
+db_url = os.getenv("DATABASE_URL", "text_store.db")
 
-DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///store.db')
-
-
-# This will hold the thread-local connection for each thread
-thread_local = threading.local()
+# This will hold the current connection for testing
+current_connection = None
 
 def set_connection(connection):
     """Set the current DB connection to the provided one (used for testing)."""
-    thread_local.connection = connection
+    global current_connection
+    current_connection = connection
 
 @contextmanager
-def get_connection(db_url=DATABASE_URL):
-    """Get the current DB connection, ensuring thread safety using thread-local storage."""
-    if hasattr(thread_local, 'connection'):
-        yield thread_local.connection
+def get_connection(db_url=db_url):
+    """Get a connection to the database."""
+    if current_connection:
+        yield current_connection
     else:
-        # If no thread-local connection exists, create one for this thread
         conn = sqlite3.connect(db_url, check_same_thread=False)
-        thread_local.connection = conn
         try:
             yield conn
         finally:
             conn.close()
-            del thread_local.connection  # Clear thread-local connection after use
 
-# Create the table if it doesn't exist
 def initialize_db():
-    """Initialize the database by creating the necessary tables."""
+    """Create the table if it doesn't exist."""
     with get_connection() as connection:
         connection.execute("""
             CREATE TABLE IF NOT EXISTS texts (
@@ -50,7 +46,6 @@ def initialize_db():
         """)
         connection.commit()
 
-initialize_db()  # Ensure table is created on startup
 
 def generate_unique_id():
     """Generate a unique 4-character ID for new entries."""
