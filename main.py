@@ -45,7 +45,7 @@ def submit_form(
     background_tasks: BackgroundTasks,
     content: str = Form(...)
 ):
-    if len(content) > 1000:
+    if len(content) > 2000:
         raise HTTPException(status_code=400, detail="Text exceeds maximum allowed length.")
 
     background_tasks.add_task(delete_expired_entries_background)

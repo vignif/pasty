@@ -15,7 +15,7 @@
         </div>
         <p>Pasty is an online text storage application. It works as an online clipboard to store and retrieve text. All text is stored in a SQLite database. 
             The text is deleted after a configurable period of time.
-            Store up to 1000 characters. <a href="https://github.com/vignif/pasty">Source code available</a>.
+            Store up to 2000 characters. <a href="https://github.com/vignif/pasty">Source code available</a>.
         </p>
         <p>Do not store sensitive information.</p>
         <!-- Tab Navigation -->
@@ -27,8 +27,16 @@
         <!-- Tab Content for Saving Text -->
         <div id="save-tab" class="tab-content active">
             <form action="/submit" method="post">
-                <textarea name="content" id="content" placeholder="Paste your text here..." required maxlength="1000" oninput="updateCount()"></textarea>
-                <div class="char-count"><span id="charCount">0</span>/1000 characters</div>
+                <textarea
+                    name="content"
+                    id="content"
+                    placeholder="Paste your text here..."
+                    required
+                    maxlength="2000"
+                    oninput="autoResize(this); updateCount();"
+                    style="width: 100%; min-height: 150px; resize: none; overflow: hidden;"
+                ></textarea>
+                <div class="char-count"><span id="charCount">0</span>/2000 characters</div>
                 <button type="submit">Save</button>
             </form>
 
@@ -62,6 +70,10 @@
     </div>
 
     <script>
+        function autoResize(textarea) {
+            textarea.style.height = 'auto'; // Reset height
+            textarea.style.height = textarea.scrollHeight + 'px'; // Set to full scroll height
+        }
         function updateCount() {
             const count = document.getElementById('content').value.length;
             document.getElementById('charCount').innerText = count;
