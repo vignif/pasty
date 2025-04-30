@@ -1,4 +1,6 @@
-![Logo](static/logo.png)
+<p align="center">
+  <img src="static/logo.png" alt="Logo" width="200"/>
+</p>
 
 ## Pasty: copy and paste online
 A simple online clipboard to easily move text between two machines connected to the internet.
