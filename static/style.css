@@ -1,10 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono&display=swap');
+
 /* Reset some default styles */
 body, h1, h2, p, textarea, input, button {
     margin: 0;
     padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Inter', sans-serif;
     box-sizing: border-box;
 }
+
+body {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    background-color: #f9f9f9;
+    color: #333;
+    line-height: 1.6;
+    padding: 2rem;
+}
+
 
 /* General layout */
 body {

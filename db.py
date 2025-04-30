@@ -48,9 +48,9 @@ def initialize_db():
 
 
 def generate_unique_id():
-    """Generate a unique 4-character ID for new entries."""
+    """Generate a unique 4-character ID using only uppercase letters."""
     while True:
-        id_ = "".join(random.choices(string.ascii_letters, k=4))
+        id_ = "".join(random.choices(string.ascii_uppercase, k=4))
         if not id_exists(id_):
             return id_
 
