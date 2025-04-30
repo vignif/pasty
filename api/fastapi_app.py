@@ -68,16 +68,19 @@ def retrieve_form(request: Request, lookup_id: str = ""):
 
     if row:
         db.update_last_accessed(lookup_id, datetime.now(timezone.utc))
+        
         return templates.TemplateResponse("index.html", {
             "request": request,
-            "retrieved_content": row[0],
-            "activate_retrieve": True
+            "retrieved_content": row,
+            "activate_retrieve": True,
+            "lookup_id": lookup_id
         })
     else:
         return templates.TemplateResponse("index.html", {
             "request": request,
             "error": "ID not found",
-            "activate_retrieve": True
+            "activate_retrieve": True,
+            "lookup_id": lookup_id
         })
 
 

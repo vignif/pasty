@@ -6,7 +6,7 @@
     <title>Pasty</title>
     <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
 </head>
-<body>
+<body data-retrieved="{{ 'true' if retrieved_content else '' }}" data-error="{{ 'true' if error else '' }}">
     <div class="container">
         <div class="logo">
             <a href="/">
@@ -18,6 +18,7 @@
             Store up to 2000 characters. <a href="https://github.com/vignif/pasty">Source code available</a>.
         </p>
         <p>Do not store sensitive information.</p>
+
         <!-- Tab Navigation -->
         <div class="tabs">
             <button class="tab active" onclick="switchTab(event, 'save-tab')">Save Text</button>
@@ -34,19 +35,15 @@
                     required
                     maxlength="2000"
                     oninput="autoResize(this); updateCount();"
-                    style="width: 100%; min-height: 150px; resize: none; overflow: hidden;"
+                    style="width: 100%; resize: none; overflow: hidden;"
                 ></textarea>
-                <div class="char-count"><span id="charCount">0</span>/2000 characters</div>
-                <button type="submit">Save</button>
+                <div class="row">
+                    <button type="submit">Save</button>
+                    <div class="char-count"><span id="charCount">0</span>/2000 characters</div>
+                </div>
             </form>
 
-            {% if id %}
-            <div class="results">
-                <h2>Text Saved</h2>
-                <p><strong>ID:</strong> {{ id }}</p>
-                <p><strong>Text:</strong> {{ content }}</p>
-            </div>
-            {% endif %}
+           
         </div>
 
         <!-- Tab Content for Retrieving Text -->
@@ -56,24 +53,36 @@
                 <button type="submit">Retrieve</button>
             </form>
 
+           
         </div>
+    </div>
+    
+    <div class="">
+        {% if id %}
+        <div class="card">
+            <h2>Text Saved – ID: {{ id }}</h2>
+            <div class="card-content">{{ content }}</div>
+        </div>
+        {% endif %}
+
         {% if retrieved_content %}
-        <div class="results">
-            <h2>Retrieved Text</h2>
-            <p><strong>Content:</strong> {{ retrieved_content }}</p>
+        <div class="card">
+            <h2>Retrieved your text using the ID: {{ lookup_id }}</h2>
+            <div class="card-content">{{ retrieved_content }}</div>
         </div>
         {% elif error %}
-        <div class="results error">
+        <div class="card error-card">
             <p>{{ error }}</p>
         </div>
         {% endif %}
     </div>
-
+    
     <script>
         function autoResize(textarea) {
             textarea.style.height = 'auto'; // Reset height
             textarea.style.height = textarea.scrollHeight + 'px'; // Set to full scroll height
         }
+
         function updateCount() {
             const count = document.getElementById('content').value.length;
             document.getElementById('charCount').innerText = count;
@@ -95,13 +104,9 @@
             document.getElementById(tabId).classList.add('active');
         }
 
-        // Auto-switch to retrieve tab if there's a retrieval-related response
-        window.onload = function() {
-            if (retrievedContent || error) {
-                switchTab(event, 'retrieve-tab');
-            }
-        };
+        
     </script>
+
     <footer class="footer">
         <p>
             Pasty - A simple text storage application powered by

@@ -10,8 +10,8 @@ body, h1, h2, p, textarea, input, button {
 
 body {
     font-family: 'Inter', sans-serif;
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 400;
     background-color: #f9f9f9;
     color: #333;
     line-height: 1.6;
@@ -34,6 +34,7 @@ body {
     max-width: 700px;
     margin: auto;
     padding: 2rem;
+    padding-top: 0;
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
@@ -118,19 +119,39 @@ button[type="submit"]:hover {
     background-color: #4338ca;
 }
 
-/* Results area */
-.results {
-    background-color: #f0f4ff;
-    border-left: 4px solid #4f46e5;
-    padding: 1rem;
-    margin-top: 1rem;
-    border-radius: 8px;
+.card {
+    max-width: 700px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 2rem;
+    margin: 16px auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.results.error {
-    background-color: #ffe4e6;
-    border-left-color: #dc2626;
+.card h2 {
+    margin-top: 0;
+    font-size: 1.25rem;
+    color: #333;
 }
+
+.card-content {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: #f5f5f5;
+    padding: 12px;
+    border-radius: 6px;
+    font-family: monospace;
+    margin-top: 8px;
+}
+
+.error-card {
+    border-color: #e57373;
+    background-color: #fdecea;
+}
+
 
 /* Footer */
 .footer {
@@ -153,14 +174,11 @@ button[type="submit"]:hover {
 .char-count {
     font-size: 0.9em;
     color: #666;
-    margin-top: 5px;
+    /* margin-top: 5px; */
     text-align: right;
     font-family: monospace;
     background-color: #f8f8f8;
     padding: 4px 8px;
-    border-radius: 6px;
-    width: fit-content;
-    margin-left: auto;
 }
 
 .char-count span {
@@ -173,7 +191,8 @@ button[type="submit"]:hover {
     display: flex;
     flex-direction: column; /* Stack vertically */
     align-items: center;
-    margin-bottom: 20px; /* Increase margin if needed */
+    margin: 1rem; /* Increase margin if needed */
+    margin-top: 0;
 }
 
 .logo a {
@@ -186,7 +205,6 @@ button[type="submit"]:hover {
 .logo img {
     height: 300px; /* Adjust the size of the logo */
     width: 300px; /* Adjust the size of the logo */
-    margin-bottom: 10px; /* Space between the logo and text */
 }
 
 .logo-text {
@@ -202,3 +220,10 @@ h1 {
     color: #4a4a4a;
     text-align: center; /* Center the heading */
 }
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
