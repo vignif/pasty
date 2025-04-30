@@ -6,25 +6,21 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 from mangum import Mangum
 import db  # your own database module
-import logging
 
 load_dotenv()
-logger = logging.getLogger(__name__)
 
 # Create FastAPI app
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
 @app.on_event("startup")
-async def on_startup():
-    """Initialize the database with error handling."""
+def startup_event():
     try:
-        logger.info("Initializing database...")
-        await db.initialize_db()
-        logger.info("Database initialized successfully")
+        db.initialize_db()
+        print("Database initialized")
     except Exception as e:
-        logger.error(f"Database initialization failed: {str(e)}")
-        raise
+        print(f"Error initializing database: {e}")
+    
 
 # Background task to delete expired entries
 def delete_expired_entries_background():
