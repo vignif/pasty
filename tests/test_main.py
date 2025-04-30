@@ -16,14 +16,11 @@ client = TestClient(app)
 @pytest.fixture(scope="function")
 def tmp_db():
     """Setup in-memory DB for testing."""
-    connection = sqlite3.connect(":memory:", check_same_thread=False)
-    db.set_connection(connection)  # Set the test connection
+    connection = db.get_connection(":memory:")  # Set the test connection
     db.initialize_db()  # Initialize the schema
 
     yield connection  # This is where the tests will run
 
-    # Teardown: close the connection after the test
-    connection.close()
 
 # Test: Submit and retrieve content via web form
 def test_submit_and_retrieve_via_web(tmp_db):

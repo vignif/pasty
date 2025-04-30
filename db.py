@@ -22,13 +22,13 @@ def set_connection(connection):
     thread_local.connection = connection
 
 @contextmanager
-def get_connection():
+def get_connection(db_url=DATABASE_URL):
     """Get the current DB connection, ensuring thread safety using thread-local storage."""
     if hasattr(thread_local, 'connection'):
         yield thread_local.connection
     else:
         # If no thread-local connection exists, create one for this thread
-        conn = sqlite3.connect(DATABASE_URL, check_same_thread=False)
+        conn = sqlite3.connect(db_url, check_same_thread=False)
         thread_local.connection = conn
         try:
             yield conn
