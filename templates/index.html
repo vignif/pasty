@@ -40,6 +40,7 @@
                 <div class="row">
                     <button type="submit">Save</button>
                     <div class="char-count"><span id="charCount">0</span>/2000 characters</div>
+                    <p id="row-count">Total rows: ...</p>
                 </div>
             </form>
 
@@ -104,7 +105,21 @@
             document.getElementById(tabId).classList.add('active');
         }
 
-        
+        async function updateRowCount() {
+                try {
+                    const response = await fetch('/api/count');
+                    const data = await response.json();
+                    document.getElementById('row-count').innerText = `Total rows: ${data.count}`;
+                } catch (err) {
+                    console.error('Failed to fetch row count:', err);
+                }
+            }
+
+            // Initial call
+            updateRowCount();
+
+            // Update every 10 seconds
+            setInterval(updateRowCount, 1000);
     </script>
 
     <footer class="footer">

@@ -96,3 +96,8 @@ def id_exists(id_):
     """Check if a text entry with the given ID exists."""
     with get_session() as session:
         return session.query(Text.id).filter_by(id=id_).first() is not None
+
+
+def get_db_count():
+    with get_session() as session:
+        return session.query(Text).count()
