@@ -11,6 +11,14 @@ load_dotenv()
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
+@app.on_event("startup")
+def startup_event():
+    try:
+        db.initialize_db()
+        print("Database initialized")
+    except Exception as e:
+        print(f"Error initializing database: {e}")
+    
 
 # Background task
 def delete_expired_entries_background():
