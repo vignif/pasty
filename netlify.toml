@@ -1,0 +1,6 @@
+[build]
+  functions = "api"  # Netlify will look for serverless functions in the 'api' directory
+
+[dev]
+  functions = "api"
+  targetPort = 8000  # Local port for FastAPI when testing locally
