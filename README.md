@@ -1,6 +1,6 @@
-# Text Storage API
 ![Logo](static/logo.png)
 
+## Pasty: copy and paste online
 A simple online clipboard to easily move text between two machines connected to the internet.
 When you save your text you will get a unique identifier of it.
 To retrieve your text just use the identifier.
