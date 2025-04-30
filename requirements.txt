@@ -4,3 +4,4 @@ jinja2
 httpx
 pytest
 python-dotenv
+python-multipart
