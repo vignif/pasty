@@ -1,5 +1,8 @@
-# Text Storage API
+# Pasty
 
+A simple online clipboard to easily move text between two machines connected to the internet.
+When you save your text you will get a unique identifier of it.
+To retrieve your text just use the identifier.
 A simple FastAPI-based application to store and retrieve short text snippets using SQLite. This project demonstrates how to use FastAPI for building a web API with basic CRUD operations and background tasks.
 
 ## Features
