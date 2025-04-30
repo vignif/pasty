@@ -6,13 +6,25 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 from mangum import Mangum
 import db  # your own database module
+import logging
 
 load_dotenv()
+logger = logging.getLogger(__name__)
 
 # Create FastAPI app
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
+@app.on_event("startup")
+async def on_startup():
+    """Initialize the database with error handling."""
+    try:
+        logger.info("Initializing database...")
+        await db.initialize_db()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Database initialization failed: {str(e)}")
+        raise
 
 # Background task to delete expired entries
 def delete_expired_entries_background():
@@ -91,7 +103,6 @@ def api_get(text_id: str):
         return {"content": row[0]}
     else:
         raise HTTPException(status_code=404, detail="ID not found")
-
 
 # Lambda handler for serverless execution using Mangum
 handler = Mangum(app)
