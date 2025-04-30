@@ -118,7 +118,7 @@ def test_simultaneous_submissions(tmp_db):
 # Test: Check expired entries deletion (if applicable)
 def test_delete_expired_entries(tmp_db):
     # Assuming delete_expired_entries is a method that deletes old records from the DB
-    db.insert_text("test_id", "Some content", "2025-01-01T00:00:00Z", "2025-01-01T00:00:00Z")
+    db.insert_text("test_id", "Some content", "2025-01-01T00:00:00Z", "2025-01-01T00:00:00Z", "127.0.0.1")
     
     # Call the method to delete expired entries
     db.delete_expired_entries()
