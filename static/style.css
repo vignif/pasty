@@ -1,0 +1,191 @@
+/* Reset some default styles */
+body, h1, h2, p, textarea, input, button {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-sizing: border-box;
+}
+
+/* General layout */
+body {
+    background-color: #f4f4f9;
+    color: #333;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.container {
+    background: white;
+    max-width: 700px;
+    margin: auto;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Headings */
+h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: #4a4a4a;
+}
+
+h2 {
+    margin-top: 1.5rem;
+    font-size: 1.25rem;
+}
+
+/* Paragraphs */
+p {
+    margin: 0.75rem 0;
+    line-height: 1.6;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.tab {
+    flex: 1;
+    padding: 0.75rem;
+    text-align: center;
+    background-color: #e0e0e0;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.tab:hover {
+    background-color: #d5d5d5;
+}
+
+.tab.active {
+    background-color: #4f46e5;
+    color: white;
+}
+
+/* Tab content */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Forms and inputs */
+textarea, input[type="text"] {
+    width: 100%;
+    padding: 1rem;
+    margin: 1rem 0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    resize: vertical;
+    font-size: 1rem;
+}
+
+button[type="submit"] {
+    background-color: #4f46e5;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button[type="submit"]:hover {
+    background-color: #4338ca;
+}
+
+/* Results area */
+.results {
+    background-color: #f0f4ff;
+    border-left: 4px solid #4f46e5;
+    padding: 1rem;
+    margin-top: 1rem;
+    border-radius: 8px;
+}
+
+.results.error {
+    background-color: #ffe4e6;
+    border-left-color: #dc2626;
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    margin-top: auto;
+    padding: 2rem 1rem 0;
+    font-size: 0.875rem;
+    color: #888;
+}
+
+.footer a {
+    color: #4f46e5;
+    text-decoration: none;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+.char-count {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 5px;
+    text-align: right;
+    font-family: monospace;
+    background-color: #f8f8f8;
+    padding: 4px 8px;
+    border-radius: 6px;
+    width: fit-content;
+    margin-left: auto;
+}
+
+.char-count span {
+    font-weight: bold;
+    color: #333;
+}
+
+/* Logo styling */
+.logo {
+    display: flex;
+    flex-direction: column; /* Stack vertically */
+    align-items: center;
+    margin-bottom: 20px; /* Increase margin if needed */
+}
+
+.logo a {
+    display: flex;
+    flex-direction: column; /* Stack the logo and text */
+    align-items: center;
+    text-decoration: none;
+}
+
+.logo img {
+    height: 300px; /* Adjust the size of the logo */
+    width: 300px; /* Adjust the size of the logo */
+    margin-bottom: 10px; /* Space between the logo and text */
+}
+
+.logo-text {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Heading styling */
+h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: #4a4a4a;
+    text-align: center; /* Center the heading */
+}

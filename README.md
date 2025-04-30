@@ -1,4 +1,5 @@
 # Text Storage API
+![Logo](static/logo.png)
 
 A simple FastAPI-based application to store and retrieve short text snippets using SQLite. This project demonstrates how to use FastAPI for building a web API with basic CRUD operations and background tasks.
 

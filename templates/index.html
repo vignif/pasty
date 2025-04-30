@@ -3,130 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Text Saver</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f7f6;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: #333;
-        }
-
-        .container {
-            background-color: #fff;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            border-radius: 8px;
-            max-width: 800px;
-            width: 100%;
-        }
-
-        h1 {
-            text-align: center;
-            font-size: 24px;
-            margin-bottom: 20px;
-            color: #2c3e50;
-        }
-
-        /* Tab Styles */
-        .tabs {
-            display: flex;
-            justify-content: space-around;
-            border-bottom: 2px solid #ccc;
-        }
-
-        .tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            font-weight: bold;
-            color: #2980b9;
-            border: none;
-            background-color: transparent;
-            transition: color 0.3s;
-        }
-
-        .tab:hover {
-            color: #3498db;
-        }
-
-        .tab.active {
-            border-bottom: 2px solid #2980b9;
-            color: #3498db;
-        }
-
-        /* Tab Content Styles */
-        .tab-content {
-            display: none;
-            padding: 20px;
-            margin-top: 20px;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        textarea {
-            width: 100%;
-            height: 150px;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            resize: none;
-            font-size: 14px;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-
-        button {
-            background-color: #2980b9;
-            color: #fff;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #3498db;
-        }
-
-        .results {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #ecf0f1;
-            border-radius: 4px;
-        }
-
-        .error {
-            color: red;
-            font-weight: bold;
-        }
-
-        .info {
-            margin-top: 10px;
-            font-size: 16px;
-        }
-    </style>
+    <title>Pasty</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1>Text Saver</h1>
-
+        <div class="logo">
+            <a href="/">
+                <img src="{{ url_for('static', path='logo.png') }}" alt="Pasty Logo">
+            </a>
+        </div>
+        <p>Pasty is an online text storage application. It works as an online clipboard to store and retrieve text. All text is stored in a SQLite database. 
+            The text is deleted after a configurable period of time.
+            Store up to 1000 characters. <a href="https://github.com/vignif/pasty">Source code available</a>.
+        </p>
+        <p>Do not store sensitive information.</p>
         <!-- Tab Navigation -->
         <div class="tabs">
             <button class="tab active" onclick="switchTab(event, 'save-tab')">Save Text</button>
@@ -136,7 +27,8 @@
         <!-- Tab Content for Saving Text -->
         <div id="save-tab" class="tab-content active">
             <form action="/submit" method="post">
-                <textarea name="content" placeholder="Paste your text here..." required></textarea><br>
+                <textarea name="content" id="content" placeholder="Paste your text here..." required maxlength="1000" oninput="updateCount()"></textarea>
+                <div class="char-count"><span id="charCount">0</span>/1000 characters</div>
                 <button type="submit">Save</button>
             </form>
 
@@ -170,6 +62,11 @@
     </div>
 
     <script>
+        function updateCount() {
+            const count = document.getElementById('content').value.length;
+            document.getElementById('charCount').innerText = count;
+        }
+
         function switchTab(event, tabId) {
             // Remove 'active' class from all tabs
             const tabs = document.querySelectorAll('.tab');
@@ -193,5 +90,16 @@
             }
         };
     </script>
+    <footer class="footer">
+        <p>
+            Pasty - A simple text storage application powered by
+            <a href="https://fastapi.tiangolo.com/">FastAPI</a> and
+            <a href="https://www.sqlite.org/index.html">SQLite</a>.
+            <br>
+            Created with ❤️ by <a href="https://github.com/vignif">Francesco Vigni</a>
+            in 2025.
+        </p>
+    </footer>
+
 </body>
 </html>

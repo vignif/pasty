@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request, Form, BackgroundTasks, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from datetime import datetime, timezone
 from dotenv import load_dotenv
@@ -9,6 +10,7 @@ import db  # your own database module
 load_dotenv()
 
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 @app.on_event("startup")
@@ -42,6 +44,8 @@ def submit_form(
     background_tasks: BackgroundTasks,
     content: str = Form(...)
 ):
+    if len(content) > 1000:
+        raise HTTPException(status_code=400, detail="Text exceeds maximum allowed length.")
     background_tasks.add_task(delete_expired_entries_background)
     now = datetime.now(timezone.utc).isoformat()
     id_ = db.generate_unique_id()
