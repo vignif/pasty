@@ -9,6 +9,7 @@ To retrieve your text just use the identifier.
 A simple FastAPI-based application to store and retrieve short text snippets using SQLite. This project demonstrates how to use FastAPI for building a web API with basic CRUD operations and background tasks.
 
 ![Tests](https://github.com/vignif/pasty/actions/workflows/test.yml/badge.svg)
+
 [![Demo](https://img.shields.io/badge/Demo-online-blue?logo=fastapi)](https://ntrolci.onrender.com/)
 
 
