@@ -1,0 +1,39 @@
+# Python bytecode files
+*.pyc
+*.pyo
+__pycache__/
+
+# Virtual environment
+venv/
+.env/
+
+# SQLite database file
+text_store.db
+
+# .env files containing sensitive data
+.env
+
+# Logs
+*.log
+
+# FastAPI specific
+*.db-journal
+
+# Test and coverage files
+*.coverage
+*.hypothesis/
+.coverage.*
+nosetests.xml
+coverage.xml
+*.coveragerc
+
+# Editor-specific files
+.vscode/
+.idea/
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Pytest cache
+.cache/

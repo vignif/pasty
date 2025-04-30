@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Saver</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            background-color: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        /* Tab Styles */
+        .tabs {
+            display: flex;
+            justify-content: space-around;
+            border-bottom: 2px solid #ccc;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #2980b9;
+            border: none;
+            background-color: transparent;
+            transition: color 0.3s;
+        }
+
+        .tab:hover {
+            color: #3498db;
+        }
+
+        .tab.active {
+            border-bottom: 2px solid #2980b9;
+            color: #3498db;
+        }
+
+        /* Tab Content Styles */
+        .tab-content {
+            display: none;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: none;
+            font-size: 14px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        button {
+            background-color: #2980b9;
+            color: #fff;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #3498db;
+        }
+
+        .results {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #ecf0f1;
+            border-radius: 4px;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+
+        .info {
+            margin-top: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Text Saver</h1>
+
+        <!-- Tab Navigation -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab(event, 'save-tab')">Save Text</button>
+            <button class="tab" onclick="switchTab(event, 'retrieve-tab')">Retrieve Text</button>
+        </div>
+
+        <!-- Tab Content for Saving Text -->
+        <div id="save-tab" class="tab-content active">
+            <form action="/submit" method="post">
+                <textarea name="content" placeholder="Paste your text here..." required></textarea><br>
+                <button type="submit">Save</button>
+            </form>
+
+            {% if id %}
+            <div class="results">
+                <h2>Text Saved</h2>
+                <p><strong>ID:</strong> {{ id }}</p>
+                <p><strong>Text:</strong> {{ content }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Tab Content for Retrieving Text -->
+        <div id="retrieve-tab" class="tab-content">
+            <form action="/retrieve" method="get">
+                <input type="text" name="lookup_id" placeholder="Enter your ID" required>
+                <button type="submit">Retrieve</button>
+            </form>
+
+        </div>
+        {% if retrieved_content %}
+        <div class="results">
+            <h2>Retrieved Text</h2>
+            <p><strong>Content:</strong> {{ retrieved_content }}</p>
+        </div>
+        {% elif error %}
+        <div class="results error">
+            <p>{{ error }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function switchTab(event, tabId) {
+            // Remove 'active' class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            // Add 'active' class to the clicked tab
+            event.target.classList.add('active');
+
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            // Show the clicked tab's content
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // Auto-switch to retrieve tab if there's a retrieval-related response
+        window.onload = function() {
+            if (retrievedContent || error) {
+                switchTab(event, 'retrieve-tab');
+            }
+        };
+    </script>
+</body>
+</html>
