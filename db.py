@@ -1,48 +1,57 @@
-import sqlite3
 from datetime import datetime, timedelta, timezone
 import os
 from dotenv import load_dotenv
 import random
 import string
 from contextlib import contextmanager
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, func
+from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 load_dotenv()
 
 # Constants
 EXPIRATION_HOURS = int(os.getenv("EXPIRATION_HOURS", 24))
-db_url = os.getenv("DATABASE_URL", "text_store.db")
+db_url = os.getenv("DATABASE_URL", "sqlite:///text_store.db")  # Use SQLAlchemy URI format
 
-current_connection = None
+# SQLAlchemy setup
+Base = declarative_base()
 
-def set_connection(connection):
-    global current_connection
-    current_connection = connection
+engine = create_engine(db_url, connect_args={"check_same_thread": False} if 'sqlite' in db_url else {})
+Session = sessionmaker(bind=engine)
+current_session = None
+
+# Define Text model
+class Text(Base):
+    __tablename__ = 'texts'
+
+    id = Column(String(4), primary_key=True)
+    content = Column(String)
+    created_at = Column(DateTime, default=func.now())
+    last_accessed = Column(DateTime)
+    ip_address = Column(String)
+    retrieval_count = Column(Integer, default=0)
+
+# Set connection/session for global use
+def set_session(session):
+    global current_session
+    current_session = session
 
 @contextmanager
-def get_connection(db_url=db_url):
-    if current_connection:
-        yield current_connection
+def get_session():
+    global current_session
+    if current_session:
+        yield current_session
     else:
-        conn = sqlite3.connect(db_url, check_same_thread=False)
+        session = Session()
         try:
-            yield conn
+            yield session
         finally:
-            conn.close()
+            session.close()
 
 def initialize_db():
     """Create the table if it doesn't exist."""
-    with get_connection() as connection:
-        connection.execute("""
-            CREATE TABLE IF NOT EXISTS texts (
-                id TEXT PRIMARY KEY,
-                content TEXT,
-                created_at TEXT,
-                last_accessed TEXT,
-                ip_address TEXT,
-                retrieval_count INTEGER DEFAULT 0
-            )
-        """)
-        connection.commit()
+    Base.metadata.create_all(engine)
 
 def generate_unique_id():
     """Generate a unique 4-character ID using only uppercase letters."""
@@ -53,37 +62,37 @@ def generate_unique_id():
 
 def insert_text(id_, content, created_at, last_accessed, ip_address):
     """Insert a new text entry into the database."""
-    with get_connection() as connection:
-        connection.execute(
-            "INSERT INTO texts (id, content, created_at, last_accessed, ip_address, retrieval_count) VALUES (?, ?, ?, ?, ?, 0)",
-            (id_, content, created_at, last_accessed, ip_address)
-        )
-        connection.commit()
+    with get_session() as session:
+        text = Text(id=id_, content=content, created_at=created_at, last_accessed=last_accessed, ip_address=ip_address)
+        session.add(text)
+        session.commit()
 
 def get_text_by_id(id_):
     """Retrieve text content by ID and increment retrieval count."""
-    with get_connection() as connection:
-        cur = connection.execute("SELECT content FROM texts WHERE id = ?", (id_,))
-        result = cur.fetchone()
-        if result:
-            connection.execute(
-                "UPDATE texts SET retrieval_count = retrieval_count + 1 WHERE id = ?", (id_,)
-            )
-            connection.commit()
-        return result
+    with get_session() as session:
+        text = session.query(Text).filter_by(id=id_).first()
+        if text:
+            text.retrieval_count += 1
+            session.commit()
+            return text.content
+        return None
 
 def update_last_accessed(id_, timestamp):
-    with get_connection() as connection:
-        connection.execute("UPDATE texts SET last_accessed = ? WHERE id = ?", (timestamp, id_))
-        connection.commit()
+    """Update the last accessed timestamp for a text entry."""
+    with get_session() as session:
+        text = session.query(Text).filter_by(id=id_).first()
+        if text:
+            text.last_accessed = timestamp
+            session.commit()
 
 def delete_expired_entries():
-    with get_connection() as connection:
+    """Delete expired entries based on the expiration cutoff."""
+    with get_session() as session:
         expiry_cutoff = datetime.now(timezone.utc) - timedelta(hours=EXPIRATION_HOURS)
-        connection.execute("DELETE FROM texts WHERE created_at < ?", (expiry_cutoff.isoformat(),))
-        connection.commit()
+        session.query(Text).filter(Text.created_at < expiry_cutoff).delete()
+        session.commit()
 
 def id_exists(id_):
-    with get_connection() as connection:
-        cur = connection.execute("SELECT 1 FROM texts WHERE id = ?", (id_,))
-        return cur.fetchone() is not None
+    """Check if a text entry with the given ID exists."""
+    with get_session() as session:
+        return session.query(Text.id).filter_by(id=id_).first() is not None
