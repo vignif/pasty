@@ -77,50 +77,8 @@
         </div>
         {% endif %}
     </div>
-    
-    <script>
-        function autoResize(textarea) {
-            textarea.style.height = 'auto'; // Reset height
-            textarea.style.height = textarea.scrollHeight + 'px'; // Set to full scroll height
-        }
 
-        function updateCount() {
-            const count = document.getElementById('content').value.length;
-            document.getElementById('charCount').innerText = count;
-        }
-
-        function switchTab(event, tabId) {
-            // Remove 'active' class from all tabs
-            const tabs = document.querySelectorAll('.tab');
-            tabs.forEach(tab => tab.classList.remove('active'));
-
-            // Add 'active' class to the clicked tab
-            event.target.classList.add('active');
-
-            // Hide all tab contents
-            const tabContents = document.querySelectorAll('.tab-content');
-            tabContents.forEach(content => content.classList.remove('active'));
-
-            // Show the clicked tab's content
-            document.getElementById(tabId).classList.add('active');
-        }
-
-        async function updateRowCount() {
-                try {
-                    const response = await fetch('/api/count');
-                    const data = await response.json();
-                    document.getElementById('row-count').innerText = `Total rows: ${data.count}`;
-                } catch (err) {
-                    console.error('Failed to fetch row count:', err);
-                }
-            }
-
-            // Initial call
-            updateRowCount();
-
-            // Update every 10 seconds
-            setInterval(updateRowCount, 1000);
-    </script>
+    <script src="{{ url_for('static', path='app.js') }}"></script>
 
     <footer class="footer">
         <p>
