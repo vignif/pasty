@@ -227,3 +227,11 @@ h1 {
     align-items: center;
 }
 
+#row-count {
+    transition: all 0.3s ease;
+}
+
+#row-count.updated {
+    transform: scale(1.1);
+    color: #4CAF50;
+}

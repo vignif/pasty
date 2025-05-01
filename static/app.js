@@ -1,3 +1,74 @@
+// In your static JavaScript file
+let socket;
+let reconnectAttempts = 0;
+const maxReconnectAttempts = 5;
+const reconnectDelay = 1000; // 1 second
+
+function connectWebSocket() {
+    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    const wsUrl = protocol + window.location.host + '/ws/row-count';
+    
+    socket = new WebSocket(wsUrl);
+
+    socket.onopen = function(e) {
+        console.log("WebSocket connected");
+        reconnectAttempts = 0; // Reset on successful connection
+    };
+
+    socket.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        if (data.type === 'count_update') {
+            updateCountDisplay(data.count);
+        }
+    };
+
+    socket.onclose = function(event) {
+        if (event.wasClean) {
+            console.log(`WebSocket closed cleanly, code=${event.code}, reason=${event.reason}`);
+        } else {
+            console.log('WebSocket connection died');
+            attemptReconnect();
+        }
+    };
+
+    socket.onerror = function(error) {
+        console.log(`WebSocket error: ${error.message}`);
+        socket.close();
+    };
+}
+
+function attemptReconnect() {
+    if (reconnectAttempts < maxReconnectAttempts) {
+        reconnectAttempts++;
+        console.log(`Attempting to reconnect (${reconnectAttempts}/${maxReconnectAttempts})...`);
+        setTimeout(connectWebSocket, reconnectDelay * reconnectAttempts);
+    } else {
+        console.log('Max reconnection attempts reached');
+    }
+}
+
+function updateCountDisplay(count) {
+    // Update your UI with the new count
+    const countElement = document.getElementById('row-count');
+    if (countElement) {
+        countElement.textContent = `Total rows: ${count}`;
+        
+        // Optional: Add visual feedback
+        countElement.classList.add('updated');
+        setTimeout(() => countElement.classList.remove('updated'), 500);
+    }
+}
+
+// Start the connection when page loads
+document.addEventListener('DOMContentLoaded', connectWebSocket);
+
+// Optional: Send periodic pings to keep connection alive
+setInterval(() => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send('ping');
+    }
+}, 30000); // Every 30 seconds
+
 
 function autoResize(textarea) {
     textarea.style.height = 'auto'; // Reset height
@@ -8,63 +79,3 @@ function updateCount() {
     const count = document.getElementById('content').value.length;
     document.getElementById('charCount').innerText = count;
 }
-
-function switchTab(event, tabId) {
-    // Remove 'active' class from all tabs
-    const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(tab => tab.classList.remove('active'));
-
-    // Add 'active' class to the clicked tab
-    event.target.classList.add('active');
-
-    // Hide all tab contents
-    const tabContents = document.querySelectorAll('.tab-content');
-    tabContents.forEach(content => content.classList.remove('active'));
-
-    // Show the clicked tab's content
-    document.getElementById(tabId).classList.add('active');
-}
-
-let lastRowCount = null;
-
-async function updateRowCount() {
-    try {
-        const response = await fetch('/api/count');
-        const data = await response.json();
-        if (data.count !== lastRowCount) {
-            lastRowCount = data.count;
-            document.getElementById('row-count').innerText = `Total rows: ${data.count}`;
-        }
-    } catch (err) {
-        console.error('Failed to fetch row count:', err);
-    }
-}
-
-// Initial call
-updateRowCount();
-
-// Poll every 10 seconds (instead of every second)
-// setInterval(updateRowCount, 1000);
-
-
-// WebSocket connection
-const socket = new WebSocket('ws://127.0.0.1:8000/ws/row-count');  // Update URL if using production
-
-socket.onopen = function() {
-    console.log("WebSocket connection established.");
-};
-
-socket.onmessage = function(event) {
-    const data = JSON.parse(event.data);  // Parse the JSON string
-    console.log("Received row count:", data.count);  // Access the integer value
-
-    document.getElementById('row-count').innerText = `Total rows: ${data.count}`;
-};
-
-socket.onerror = function(error) {
-    console.log("WebSocket error:", error);
-};
-
-socket.onclose = function() {
-    console.log("WebSocket connection closed.");
-};

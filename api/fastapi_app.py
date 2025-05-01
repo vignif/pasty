@@ -5,12 +5,12 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from datetime import datetime, timezone
 from dotenv import load_dotenv
-
+import json
 import db
 import logging
 
 # Import WebSocket logic
-from websocket import websocket_endpoint, notify_clients  
+from websocket import notify_clients, manager
 
 # Load environment variables
 load_dotenv()
@@ -57,16 +57,28 @@ def startup_event():
         logger.error(f"Error initializing database: {e}")
 
 # ---- WebSocket Endpoint ----
-
 @app.websocket("/ws/row-count")
-async def websocket_connection(websocket: WebSocket):
+async def websocket_endpoint(websocket: WebSocket):
+    await manager.connect(websocket)
     try:
-        await websocket_endpoint(websocket)
+        while True:
+            # Wait for any message (text or bytes)
+            data = await websocket.receive()
+            
+            # Handle ping messages
+            if isinstance(data, str):
+                try:
+                    message = json.loads(data)
+                    if message.get("type") == "ping":
+                        await websocket.send_json({"type": "pong"})
+                except json.JSONDecodeError:
+                    pass  # Ignore non-JSON messages
+                    
     except WebSocketDisconnect:
-        logger.info("WebSocket client disconnected.")
+        await manager.disconnect(websocket)
     except Exception as e:
-        logger.error(f"WebSocket error: {e}")
-        await websocket.close()
+        print(f"WebSocket error: {e}")
+        await manager.disconnect(websocket)
 
 # ---- API Routes ----
 
