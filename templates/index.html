@@ -17,7 +17,9 @@
             The text is deleted after a configurable period of time.
             Store up to 2000 characters. <a href="https://github.com/vignif/pasty">Source code available</a>.
         </p>
-        <p>Do not store sensitive information.</p>
+        <p> Do not store sensitive information.
+            The information will be stored up to 12 hours.
+        </p>
 
         <!-- Tab Navigation -->
         <div class="tabs">
@@ -34,7 +36,7 @@
                     placeholder="Paste your text here..."
                     required
                     maxlength="2000"
-                    oninput="autoResize(this); updateCount();"
+                    data-autoresize
                     style="width: 100%; resize: none; overflow: hidden;"
                 ></textarea>
                 <div class="row">
@@ -42,9 +44,7 @@
                     <div class="char-count"><span id="charCount">0</span>/2000 characters</div>
                 </div>
                 <div style="margin-top: 1rem;">Total rows: <p id="row-count" style="display: inline;">: ...</p></div>
-            </form>
-
-           
+            </form>          
         </div>
 
         <!-- Tab Content for Retrieving Text -->
@@ -53,8 +53,14 @@
                 <input type="text" name="lookup_id" placeholder="Enter your ID" required>
                 <button type="submit">Retrieve</button>
             </form>
-
-           
+        </div>
+        <div id="connection-status" class="connection-status">
+            <span class="status-indicator"></span>
+            <span class="status-text">Connecting...</span>
+            <span class="info-icon" title="WebSocket connection status">ℹ️
+                <span class="tooltip">Real-time updates require an active WebSocket connection. If disconnected, some features may not work until reconnected.</span>
+            </span>
+            <button id="reconnect-btn" class="reconnect-btn">Reconnect</button>
         </div>
     </div>
     

@@ -62,17 +62,19 @@ async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     try:
         while True:
-            # Wait for any message (text or bytes)
             data = await websocket.receive()
             
-            # Handle ping messages
             if isinstance(data, str):
                 try:
                     message = json.loads(data)
                     if message.get("type") == "ping":
-                        await websocket.send_json({"type": "pong"})
+                        await websocket.send_json({
+                            "type": "pong",
+                            "server_time": datetime.now(timezone.utc).isoformat(),
+                            "active_connections": len(manager.active_connections)
+                        })
                 except json.JSONDecodeError:
-                    pass  # Ignore non-JSON messages
+                    pass
                     
     except WebSocketDisconnect:
         await manager.disconnect(websocket)
@@ -110,7 +112,8 @@ def api_get(text_id: str):
 
 @app.get("/", response_class=HTMLResponse)
 def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse("index.html", {"request": request,  
+                                                     "EXPIRATION_HOURS": db.EXPIRATION_HOURS })
 
 @app.post("/submit", response_class=HTMLResponse)
 async def submit_form(
@@ -142,7 +145,8 @@ def retrieve_form(request: Request, lookup_id: str = ""):
     context = {
         "request": request,
         "activate_retrieve": True,
-        "lookup_id": lookup_id
+        "lookup_id": lookup_id,
+        "EXPIRATION_HOURS": db.EXPIRATION_HOURS
     }
 
     if row:
