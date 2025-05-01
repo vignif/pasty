@@ -1,16 +1,15 @@
-from fastapi import FastAPI, Request, Form, BackgroundTasks, HTTPException, APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, Form, BackgroundTasks, HTTPException, APIRouter
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from datetime import datetime, timezone
 from dotenv import load_dotenv
+import socketio
 import json
 import db
 import logging
-
-# Import WebSocket logic
-from websocket import notify_clients, manager
+import asyncio
 
 # Load environment variables
 load_dotenv()
@@ -18,6 +17,10 @@ load_dotenv()
 # Logging setup
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Socket.IO setup
+sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins=[])
+socket_app = socketio.ASGIApp(sio)
 
 # FastAPI app and router
 app = FastAPI()
@@ -42,9 +45,28 @@ async def update_row_count():
     try:
         row_count = db.get_db_count()
         logger.info(f"Broadcasting new row count: {row_count}")
-        await notify_clients(row_count)
+        await sio.emit('count_update', {'count': row_count})
     except Exception as e:
         logger.error(f"Failed to update row count: {e}")
+
+# ---- Socket.IO Events ----
+
+@sio.event
+async def connect(sid, environ):
+    logger.info(f"Client connected: {sid}")
+    # Send current count immediately on connect
+    await update_row_count()
+
+@sio.event
+async def disconnect(sid):
+    logger.info(f"Client disconnected: {sid}")
+
+@sio.event
+async def ping(sid):
+    await sio.emit('pong', {
+        'server_time': datetime.now(timezone.utc).isoformat(),
+        'active_connections': len(sio.manager.get_participants('/', None))
+    }, room=sid)
 
 # ---- Startup Events ----
 
@@ -55,32 +77,6 @@ def startup_event():
         logger.info("Database initialized successfully.")
     except Exception as e:
         logger.error(f"Error initializing database: {e}")
-
-# ---- WebSocket Endpoint ----
-@app.websocket("/ws/row-count")
-async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
-    try:
-        while True:
-            data = await websocket.receive()
-            
-            if isinstance(data, str):
-                try:
-                    message = json.loads(data)
-                    if message.get("type") == "ping":
-                        await websocket.send_json({
-                            "type": "pong",
-                            "server_time": datetime.now(timezone.utc).isoformat(),
-                            "active_connections": len(manager.active_connections)
-                        })
-                except json.JSONDecodeError:
-                    pass
-                    
-    except WebSocketDisconnect:
-        await manager.disconnect(websocket)
-    except Exception as e:
-        print(f"WebSocket error: {e}")
-        await manager.disconnect(websocket)
 
 # ---- API Routes ----
 
@@ -159,3 +155,6 @@ def retrieve_form(request: Request, lookup_id: str = ""):
 
 # ---- Include the API Router ----
 app.include_router(router)
+
+# Mount Socket.IO app
+app.mount("/socket.io", socket_app)

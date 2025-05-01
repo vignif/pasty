@@ -1,4 +1,4 @@
-class WebSocketManager {
+class SocketIOManager {
     constructor() {
         this.socket = null;
         this.reconnectAttempts = 0;
@@ -14,60 +14,72 @@ class WebSocketManager {
     }
 
     init() {
-        this.connectWebSocket();
+        this.connectSocket();
         this.setupEventListeners();
     }
 
-    connectWebSocket() {
+    connectSocket() {
         this.updateConnectionStatus('connecting');
         
         const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-        const wsUrl = protocol + window.location.host + '/ws/row-count';
-        console.log(`Connecting to ${wsUrl}`);
-        this.socket = new WebSocket(wsUrl);
+        const socketUrl = protocol + window.location.host;
+        console.log(`Connecting to Socket.IO at ${socketUrl}`);
+        
+        this.socket = io(socketUrl, {
+            reconnectionAttempts: this.maxReconnectAttempts,
+            reconnectionDelay: this.reconnectDelay,
+            reconnection: this.autoReconnect,
+            transports: ['websocket']
+        });
 
-        this.socket.onopen = (e) => {
-            console.log("WebSocket connected");
+        this.socket.on('connect', () => {
+            console.log("Socket.IO connected");
             this.reconnectAttempts = 0;
             this.updateConnectionStatus('connected');
             this.sendPing();
             this.startConnectionTimer();
-        };
+        });
 
-        this.socket.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                
-                if (data.type === 'count_update') {
-                    this.updateCountDisplay(data.count);
-                } else if (data.type === 'pong') {
-                    console.log("Heartbeat acknowledged");
-                    this.resetConnectionTimer();
-                    // Schedule next ping after interval
-                    setTimeout(() => this.sendPing(), this.pingIntervalTime);
-                }
-            } catch (e) {
-                console.log("Received non-JSON message:", event.data);
-            }
-        };
+        this.socket.on('count_update', (data) => {
+            this.updateCountDisplay(data.count);
+        });
 
-        this.socket.onclose = (event) => {
+        this.socket.on('pong', (data) => {
+            console.log("Heartbeat acknowledged", data);
+            this.resetConnectionTimer();
+            // Schedule next ping after interval
+            setTimeout(() => this.sendPing(), this.pingIntervalTime);
+        });
+
+        this.socket.on('disconnect', (reason) => {
             this.cleanupTimers();
             
-            if (event.wasClean) {
-                console.log(`Connection closed cleanly`);
+            if (reason === 'io server disconnect') {
+                console.log('Disconnected by server');
                 this.updateConnectionStatus('disconnected');
+                // The server forcefully disconnected the socket, you might want to manually reconnect
+                setTimeout(() => this.socket.connect(), 1000);
             } else {
-                console.log('Connection died');
-                this.handleDisconnection();
+                console.log('Connection lost:', reason);
+                this.updateConnectionStatus('reconnecting');
             }
-        };
+        });
 
-        this.socket.onerror = (error) => {
-            console.log(`WebSocket error:`, error);
+        this.socket.on('connect_error', (error) => {
+            console.log('Socket.IO connection error:', error);
             this.updateConnectionStatus('error');
-            this.socket.close();
-        };
+        });
+
+        this.socket.on('reconnect_attempt', (attempt) => {
+            console.log(`Reconnection attempt ${attempt}`);
+            this.reconnectAttempts = attempt;
+            this.updateConnectionStatus('reconnecting');
+        });
+
+        this.socket.on('reconnect_failed', () => {
+            console.log('Reconnection failed');
+            this.updateConnectionStatus('disconnected');
+        });
     }
 
     cleanupTimers() {
@@ -79,7 +91,7 @@ class WebSocketManager {
         this.connectionTimeout = setTimeout(() => {
             console.log("Connection timeout - no response from server");
             this.updateConnectionStatus('reconnecting');
-            this.socket.close();
+            this.socket.disconnect(); // This will trigger reconnection if enabled
         }, this.connectionTimeoutTime);
     }
 
@@ -89,29 +101,8 @@ class WebSocketManager {
     }
 
     sendPing() {
-        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-            this.socket.send(JSON.stringify({ type: "ping" }));
-        }
-    }
-
-    handleDisconnection() {
-        if (this.autoReconnect) {
-            this.updateConnectionStatus('reconnecting');
-            this.attemptReconnect();
-        } else {
-            this.updateConnectionStatus('disconnected');
-        }
-    }
-
-    attemptReconnect() {
-        if (this.reconnectAttempts < this.maxReconnectAttempts) {
-            this.reconnectAttempts++;
-            console.log(`Reconnecting (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
-            this.updateConnectionStatus('reconnecting');
-            setTimeout(() => this.connectWebSocket(), this.reconnectDelay * this.reconnectAttempts);
-        } else {
-            console.log('Max reconnection attempts reached');
-            this.updateConnectionStatus('disconnected');
+        if (this.socket && this.socket.connected) {
+            this.socket.emit('ping');
         }
     }
 
@@ -153,8 +144,8 @@ class WebSocketManager {
     setupEventListeners() {
         // Reconnect when page becomes visible again
         document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && (!this.socket || this.socket.readyState === WebSocket.CLOSED)) {
-                this.connectWebSocket();
+            if (!document.hidden && (!this.socket || !this.socket.connected)) {
+                this.connectSocket();
             }
         });
 
@@ -163,7 +154,12 @@ class WebSocketManager {
         if (reconnectBtn) {
             reconnectBtn.addEventListener('click', () => {
                 this.reconnectAttempts = 0;
-                this.connectWebSocket();
+                if (this.socket) {
+                    this.socket.disconnect(); // Will trigger reconnection
+                    this.socket.connect();
+                } else {
+                    this.connectSocket();
+                }
             });
         }
     }
@@ -171,43 +167,36 @@ class WebSocketManager {
 
 // Utility functions
 function switchTab(event, tabId) {
-    // Prevent default if event is provided
     if (event) event.preventDefault();
     
-    // Remove 'active' class from all tabs
     const tabs = document.querySelectorAll('.tab');
     tabs.forEach(tab => tab.classList.remove('active'));
 
-    // Add 'active' class to the clicked tab if event exists
     if (event) {
         event.currentTarget.classList.add('active');
     } else {
-        // If no event, find the tab matching tabId and activate it
         const targetTab = document.querySelector(`.tab[data-tab="${tabId}"]`);
         if (targetTab) targetTab.classList.add('active');
     }
 
-    // Hide all tab contents
     const tabContents = document.querySelectorAll('.tab-content');
     tabContents.forEach(content => content.classList.remove('active'));
 
-    // Show the target tab's content
     const targetContent = document.getElementById(tabId);
     if (targetContent) targetContent.classList.add('active');
 }
 
 function autoResize(textarea) {
-    textarea.style.height = 'auto'; // Reset height
-    textarea.style.height = textarea.scrollHeight + 'px'; // Set to scroll height
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
 }
 
 // Initialize when DOM is loaded
+// Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize WebSocket connection
-    const wsManager = new WebSocketManager();
-    
-    // Make it available globally if needed
-    window.wsManager = wsManager;
+    // Initialize Socket.IO manager
+    const socketManager = new SocketIOManager();
+    window.socketManager = socketManager;
     
     // Initialize tabs if they exist
     const defaultTab = document.querySelector('.tab.active');
