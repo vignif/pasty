@@ -23,7 +23,7 @@ class WebSocketManager {
         
         const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
         const wsUrl = protocol + window.location.host + '/ws/row-count';
-        
+        console.log(`Connecting to ${wsUrl}`);
         this.socket = new WebSocket(wsUrl);
 
         this.socket.onopen = (e) => {
