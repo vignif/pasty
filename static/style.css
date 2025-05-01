@@ -311,6 +311,20 @@ button[type="submit"]:hover {
 }
 
 .logo img {
-  height: 300px;
-  width: 300px;
+  height: 150px;
+  width: 150px;
 }
+
+/*************  ✨ Windsurf Command ⭐  *************/
+@media (max-width: 768px) {
+  body {
+    padding: 0;
+    font-size: 12px;
+  }
+
+  .container {
+    padding: 1rem;
+  }
+}
+
+/*******  4983b482-2860-4376-b047-608b3b73806f  *******/    
