@@ -12,6 +12,7 @@ A simple FastAPI-based application to store and retrieve short text snippets usi
 
 [![Demo](https://img.shields.io/badge/Demo-online-blue?logo=fastapi)](https://ntrolci.onrender.com/)
 
+![Coverage](https://img.shields.io/codecov/c/github/vignif/pasty/main)
 
 ## Features
 - **Store Text**: Submit text via a web form or JSON API.
