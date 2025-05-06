@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
-<body data-retrieved="{{ 'true' if retrieved_content else '' }}" data-error="{{ 'true' if error else '' }}">
+<body>
     <div class="container">
         <div class="logo">
             <a href="/">
@@ -30,7 +30,7 @@
 
         <!-- Tab Content for Saving Text -->
         <div id="save-tab" class="tab-content active">
-            <form action="/submit" method="post">
+            <form id="save-form">
                 <textarea
                     name="content"
                     id="content"
@@ -50,7 +50,7 @@
 
         <!-- Tab Content for Retrieving Text -->
         <div id="retrieve-tab" class="tab-content">
-            <form action="/retrieve" method="get">
+            <form id="retrieve-form">
                 <input type="text" name="lookup_id" placeholder="Enter your ID" required>
                 <button type="submit">Retrieve</button>
             </form>
@@ -63,26 +63,6 @@
             </span>
             <button id="reconnect-btn" class="reconnect-btn">Reconnect</button>
         </div>
-    </div>
-    
-    <div class="">
-        {% if id %}
-        <div class="card">
-            <h2>Text Saved – ID: {{ id }}</h2>
-            <div class="card-content">{{ content }}</div>
-        </div>
-        {% endif %}
-
-        {% if retrieved_content %}
-        <div class="card">
-            <h2>Retrieved your text using the ID: {{ lookup_id }}</h2>
-            <div class="card-content">{{ retrieved_content }}</div>
-        </div>
-        {% elif error %}
-        <div class="card error-card">
-            <p>{{ error }}</p>
-        </div>
-        {% endif %}
     </div>
 
     <script src="{{ url_for('static', path='app.js') }}"></script>
@@ -97,6 +77,5 @@
             in 2025.
         </p>
     </footer>
-
 </body>
 </html>

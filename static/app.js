@@ -16,6 +16,7 @@ class SocketIOManager {
     init() {
         this.connectSocket();
         this.setupEventListeners();
+        this.setupFormHandlers();
     }
 
     connectSocket() {
@@ -47,8 +48,23 @@ class SocketIOManager {
         this.socket.on('pong', (data) => {
             console.log("Heartbeat acknowledged", data);
             this.resetConnectionTimer();
-            // Schedule next ping after interval
             setTimeout(() => this.sendPing(), this.pingIntervalTime);
+        });
+
+        this.socket.on('save_success', (data) => {
+            this.showSaveSuccess(data.id, data.content);
+        });
+
+        this.socket.on('save_error', (data) => {
+            this.showError(data.error);
+        });
+
+        this.socket.on('retrieve_success', (data) => {
+            this.showRetrievedContent(data.id, data.content);
+        });
+
+        this.socket.on('retrieve_error', (data) => {
+            this.showError(data.error);
         });
 
         this.socket.on('disconnect', (reason) => {
@@ -57,7 +73,6 @@ class SocketIOManager {
             if (reason === 'io server disconnect') {
                 console.log('Disconnected by server');
                 this.updateConnectionStatus('disconnected');
-                // The server forcefully disconnected the socket, you might want to manually reconnect
                 setTimeout(() => this.socket.connect(), 1000);
             } else {
                 console.log('Connection lost:', reason);
@@ -82,6 +97,96 @@ class SocketIOManager {
         });
     }
 
+    setupFormHandlers() {
+        // Save form handler
+        const saveForm = document.querySelector('#save-tab form');
+        if (saveForm) {
+            saveForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const textarea = saveForm.querySelector('textarea');
+                if (textarea && textarea.value.trim()) {
+                    this.socket.emit('save_text', {
+                        content: textarea.value
+                    });
+                }
+            });
+        }
+
+        // Retrieve form handler
+        const retrieveForm = document.querySelector('#retrieve-tab form');
+        if (retrieveForm) {
+            retrieveForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const input = retrieveForm.querySelector('input');
+                if (input && input.value.trim()) {
+                    this.socket.emit('retrieve_text', input.value.trim());
+                }
+            });
+        }
+
+        // Character counter
+        const textarea = document.querySelector('#save-tab textarea');
+        if (textarea) {
+            textarea.addEventListener('input', () => {
+                const charCount = document.getElementById('charCount');
+                if (charCount) {
+                    charCount.textContent = textarea.value.length;
+                }
+            });
+        }
+    }
+
+    showSaveSuccess(id, content) {
+        const container = document.querySelector('.container');
+        if (!container) return;
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+            <h2>Text Saved – ID: ${id}</h2>
+            <div class="card-content">${content}</div>
+        `;
+        
+        // Remove any existing cards
+        const existingCards = document.querySelectorAll('.card');
+        existingCards.forEach(card => card.remove());
+        
+        container.insertAdjacentElement('afterend', card);
+    }
+
+    showRetrievedContent(id, content) {
+        const container = document.querySelector('.container');
+        if (!container) return;
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+            <h2>Retrieved your text using the ID: ${id}</h2>
+            <div class="card-content">${content}</div>
+        `;
+        
+        // Remove any existing cards
+        const existingCards = document.querySelectorAll('.card');
+        existingCards.forEach(card => card.remove());
+        
+        container.insertAdjacentElement('afterend', card);
+    }
+
+    showError(message) {
+        const container = document.querySelector('.container');
+        if (!container) return;
+
+        const card = document.createElement('div');
+        card.className = 'card error-card';
+        card.innerHTML = `<p>${message}</p>`;
+        
+        // Remove any existing cards
+        const existingCards = document.querySelectorAll('.card');
+        existingCards.forEach(card => card.remove());
+        
+        container.insertAdjacentElement('afterend', card);
+    }
+
     cleanupTimers() {
         clearTimeout(this.pingInterval);
         clearTimeout(this.connectionTimeout);
@@ -91,7 +196,7 @@ class SocketIOManager {
         this.connectionTimeout = setTimeout(() => {
             console.log("Connection timeout - no response from server");
             this.updateConnectionStatus('reconnecting');
-            this.socket.disconnect(); // This will trigger reconnection if enabled
+            this.socket.disconnect();
         }, this.connectionTimeoutTime);
     }
 
@@ -110,15 +215,12 @@ class SocketIOManager {
         const statusElement = document.getElementById('connection-status');
         if (!statusElement) return;
         
-        // Remove all status classes
         statusElement.classList.remove(
             'connecting', 'connected', 'disconnected', 'reconnecting', 'error'
         );
         
-        // Add current status class
         statusElement.classList.add(status);
         
-        // Update status text
         const statusText = statusElement.querySelector('.status-text');
         if (statusText) {
             const statusMessages = {
@@ -142,20 +244,18 @@ class SocketIOManager {
     }
 
     setupEventListeners() {
-        // Reconnect when page becomes visible again
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden && (!this.socket || !this.socket.connected)) {
                 this.connectSocket();
             }
         });
 
-        // Optional: Add manual reconnect button handler
         const reconnectBtn = document.getElementById('reconnect-btn');
         if (reconnectBtn) {
             reconnectBtn.addEventListener('click', () => {
                 this.reconnectAttempts = 0;
                 if (this.socket) {
-                    this.socket.disconnect(); // Will trigger reconnection
+                    this.socket.disconnect();
                     this.socket.connect();
                 } else {
                     this.connectSocket();
@@ -192,20 +292,16 @@ function autoResize(textarea) {
 }
 
 // Initialize when DOM is loaded
-// Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize Socket.IO manager
     const socketManager = new SocketIOManager();
     window.socketManager = socketManager;
     
-    // Initialize tabs if they exist
     const defaultTab = document.querySelector('.tab.active');
     if (defaultTab) {
         const tabId = defaultTab.dataset.tab || defaultTab.getAttribute('onclick').match(/'(.*?)'/)[1];
         switchTab(null, tabId);
     }
     
-    // Setup auto-resize for textareas
     const textareas = document.querySelectorAll('textarea[data-autoresize]');
     textareas.forEach(textarea => {
         autoResize(textarea);
