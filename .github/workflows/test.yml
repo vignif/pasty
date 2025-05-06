@@ -28,3 +28,16 @@ jobs:
     - name: Run Tests
       run: |
         pytest tests/
+
+    - name: Run Tests with Coverage
+      run: |
+        pytest tests/ --cov=./ --cov-report=xml  # Generate XML coverage report
+  
+    - name: Upload Coverage to GitHub
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false  # Set to true if you want coverage failures to fail CI
