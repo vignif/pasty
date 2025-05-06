@@ -6,4 +6,5 @@ pytest
 python-dotenv
 python-multipart
 mangum
+python-socketio
 sqlalchemy
