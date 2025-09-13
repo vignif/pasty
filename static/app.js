@@ -141,10 +141,11 @@ class SocketIOManager {
         if (!container) return;
 
         const card = document.createElement('div');
-        card.className = 'card';
+        card.className = 'container';
         card.innerHTML = `
-            <h2>Text Saved – ID: ${id}</h2>
-            <div class="card-content">${content}</div>
+            <h1>Text Stored Successfully!</h1>
+            <div>You can use this ID to retrieve your text again from other devices:</div>
+            <h2 class="card-content">${id}</h2>
         `;
         
         // Remove any existing cards

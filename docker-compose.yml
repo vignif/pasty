@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  pasty:
+    build: .
+    container_name: pasty
+    ports:
+      - "6001:6001"
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TZ=Europe/Rome
+    restart: unless-stopped
