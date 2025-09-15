@@ -1,15 +1,24 @@
-from fastapi import FastAPI, Request, Form, BackgroundTasks, HTTPException, APIRouter
-from fastapi.responses import JSONResponse, HTMLResponse
+# ---- Routes ----
+
+
+# ---- HTML Page Routes ----
+
+"""
+main.py
+
+Entry point for the Pasty FastAPI application. Handles routing, background tasks, and integrates Socket.IO for real-time updates.
+"""
+
+from fastapi import FastAPI, Request, APIRouter
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 import socketio
-import json
 import db
 import logging
-import asyncio
 
 # Load environment variables
 load_dotenv()
@@ -33,15 +42,21 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # ---- Models ----
+
 class TextPayload(BaseModel):
+    """Pydantic model for text payloads submitted via API."""
     content: str
 
 # ---- Utility Functions ----
 
+
 def delete_expired_entries_background():
+    """Background task to delete expired text entries from the database."""
     db.delete_expired_entries()
 
+
 async def update_row_count():
+    """Emit the current row count to all connected Socket.IO clients."""
     try:
         row_count = db.get_db_count()
         logger.info(f"Broadcasting new row count: {row_count}")
@@ -137,6 +152,11 @@ def read_root(request: Request):
         "request": request,
         "EXPIRATION_HOURS": db.EXPIRATION_HOURS
     })
+
+@app.get("/readme", response_class=HTMLResponse)
+def readme(request: Request):
+    return templates.TemplateResponse("readme.html", {"request": request})
+
 
 # Mount Socket.IO app
 app.mount("/socket.io", socket_app)

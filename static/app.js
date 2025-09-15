@@ -140,18 +140,16 @@ class SocketIOManager {
         const container = document.querySelector('.container');
         if (!container) return;
 
+        // Remove any previous result cards (both .card and .container, but not the main .container)
+        document.querySelectorAll('.card, .container.result').forEach(card => card.remove());
+
         const card = document.createElement('div');
-        card.className = 'container';
+        card.className = 'container result';
         card.innerHTML = `
             <h1>Text Stored Successfully!</h1>
-            <div>You can use this ID to retrieve your text again from other devices:</div>
+            <div>You can use this ID to retrieve your text using the ''Retrieve Text'' tab:</div>
             <h2 class="card-content">${id}</h2>
         `;
-        
-        // Remove any existing cards
-        const existingCards = document.querySelectorAll('.card');
-        existingCards.forEach(card => card.remove());
-        
         container.insertAdjacentElement('afterend', card);
     }
 
@@ -159,17 +157,15 @@ class SocketIOManager {
         const container = document.querySelector('.container');
         if (!container) return;
 
+        // Remove any previous result cards (both .card and .container.result)
+        document.querySelectorAll('.card, .container.result').forEach(card => card.remove());
+
         const card = document.createElement('div');
-        card.className = 'card';
+        card.className = 'container result';
         card.innerHTML = `
             <h2>Retrieved your text using the ID: ${id}</h2>
             <div class="card-content">${content}</div>
         `;
-        
-        // Remove any existing cards
-        const existingCards = document.querySelectorAll('.card');
-        existingCards.forEach(card => card.remove());
-        
         container.insertAdjacentElement('afterend', card);
     }
 
@@ -177,14 +173,15 @@ class SocketIOManager {
         const container = document.querySelector('.container');
         if (!container) return;
 
+        // Remove any previous result cards (both .card and .container.result)
+        document.querySelectorAll('.card, .container.result').forEach(card => card.remove());
+
         const card = document.createElement('div');
-        card.className = 'card error-card';
-        card.innerHTML = `<p>${message}</p>`;
-        
-        // Remove any existing cards
-        const existingCards = document.querySelectorAll('.card');
-        existingCards.forEach(card => card.remove());
-        
+        card.className = 'container result error-card';
+        card.innerHTML = `
+            <h1>Error</h1>    
+            <h2>${message}</h2>
+        `;
         container.insertAdjacentElement('afterend', card);
     }
 
@@ -269,7 +266,10 @@ class SocketIOManager {
 // Utility functions
 function switchTab(event, tabId) {
     if (event) event.preventDefault();
-    
+
+    // Remove previous result cards when switching tabs
+    document.querySelectorAll('.card, .container.result').forEach(card => card.remove());
+
     const tabs = document.querySelectorAll('.tab');
     tabs.forEach(tab => tab.classList.remove('active'));
 

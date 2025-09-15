@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pasty README</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+      .readme-container {
+        max-width: 700px;
+        margin: 2rem auto;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 24px rgba(80,80,160,0.10);
+        padding: 2.5rem 2rem;
+      }
+      .readme-container h1, .readme-container h2, .readme-container h3 {
+        color: #4f46e5;
+      }
+      .readme-container pre, .readme-container code {
+        background: #f4f4f9;
+        border-radius: 6px;
+        padding: 0.5em 1em;
+        font-size: 1em;
+        font-family: 'Fira Mono', 'Consolas', monospace;
+      }
+      .readme-container ul {
+        margin-left: 1.5em;
+      }
+      .readme-logo {
+        display: block;
+        margin: 0 auto 2rem auto;
+        width: 120px;
+        filter: drop-shadow(0 2px 8px rgba(79, 70, 229, 0.12));
+      }
+      .badge-row {
+        display: flex;
+        gap: 1em;
+        margin-bottom: 1em;
+        flex-wrap: wrap;
+      }
+      .badge-row img {
+        height: 24px;
+      }
+    </style>
+</head>
+<body>
+  <div class="readme-container">
+    <img src="/static/logo.png" alt="Logo" class="readme-logo" />
+    <h1>Pasty: Copy and Paste Online</h1>
+    <p>A simple online clipboard to easily move text between two machines connected to the internet.<br>
+    When you save your text you will get a unique identifier of it.<br>
+    To retrieve your text just use the identifier.<br>
+    A FastAPI-based application to store and retrieve short text snippets using SQLite.</p>
+    <div class="badge-row">
+      <img src="https://github.com/vignif/pasty/actions/workflows/test.yml/badge.svg" alt="Tests" />
+      <img src="https://img.shields.io/badge/Demo-online-blue?logo=fastapi" alt="Demo" />
+      <img src="https://img.shields.io/codecov/c/github/vignif/pasty/main" alt="Coverage" />
+    </div>
+    <h2>Features</h2>
+    <ul>
+      <li><strong>Store Text</strong>: Submit text via a web form or JSON API.</li>
+      <li><strong>Retrieve Text</strong>: Retrieve text content by unique ID.</li>
+      <li><strong>Expiration Handling</strong>: Text entries expire after a configurable period, and expired entries are automatically deleted in the background.</li>
+      <li><strong>Concurrency</strong>: Supports simultaneous submissions and ensures unique ID generation.</li>
+    </ul>
+    <h2>Requirements</h2>
+    <ul>
+      <li>Python 3.7+</li>
+      <li>FastAPI</li>
+      <li>SQLite</li>
+      <li><code>python-dotenv</code> (for environment variable management)</li>
+    </ul>
+    <h2>Setup</h2>
+    <ol>
+      <li><strong>Clone the repository:</strong>
+        <pre><code>git clone https://github.com/vignif/pasty.git
+cd pasty</code></pre>
+      </li>
+      <li><strong>Create and activate a virtual environment:</strong>
+        <pre><code>python3 -m venv venv_ntrol
+source venv_ntrol/bin/activate</code></pre>
+      </li>
+      <li><strong>Install dependencies:</strong>
+        <pre><code>pip install -r requirements.txt</code></pre>
+      </li>
+      <li><strong>Set environment variables:</strong>
+        <pre><code>EXPIRATION_HOURS=12
+DATABASE_URL=sqlite:///store.db</code></pre>
+      </li>
+    </ol>
+    <h2>Usage</h2>
+    <h3>Local Development</h3>
+    <pre><code>uvicorn main:app --reload --port 6001</code></pre>
+    <p>Access the web UI at <a href="http://localhost:6001">http://localhost:6001</a>.</p>
+    <h3>Docker</h3>
+    <pre><code>docker build -t pasty .
+docker run -p 6001:6001 pasty</code></pre>
+    <h3>Netlify</h3>
+    <p>Serverless functions are in the <code>api/</code> directory. See <code>netlify.toml</code> for configuration.</p>
+    <h2>API Endpoints</h2>
+    <ul>
+      <li><code>POST /save</code> — Save text, returns unique ID</li>
+      <li><code>GET /get/{id}</code> — Retrieve text by ID</li>
+      <li><code>GET /api/count</code> — Get current row count</li>
+    </ul>
+    <h2>Testing</h2>
+    <pre><code>pytest --cov=.</code></pre>
+    <h2>Deployment</h2>
+    <ul>
+      <li><strong>Docker:</strong> See <code>Dockerfile</code> and <code>docker-compose.yml</code> for container setup.</li>
+      <li><strong>Netlify:</strong> See <code>netlify.toml</code> for serverless deployment.</li>
+      <li><strong>Other:</strong> Can be deployed on any platform supporting FastAPI and SQLite.</li>
+    </ul>
+    <h2>Contributing</h2>
+    <p>Pull requests and issues are welcome! Please add tests for new features.</p>
+    <h2>License</h2>
+    <p>See <code>LICENSE.md</code> for details.</p>
+  </div>
+</body>
+</html>

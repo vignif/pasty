@@ -1,3 +1,10 @@
+
+"""
+db.py
+
+Database layer for Pasty. Handles text storage, retrieval, expiration, and unique ID generation using SQLAlchemy and SQLite.
+"""
+
 from datetime import datetime, timedelta, timezone
 import os
 from dotenv import load_dotenv
@@ -22,7 +29,9 @@ Session = sessionmaker(bind=engine)
 current_session = None
 
 # Define Text model
+
 class Text(Base):
+    """SQLAlchemy model for text entries."""
     __tablename__ = 'texts'
 
     id = Column(String(4), primary_key=True)
@@ -33,12 +42,16 @@ class Text(Base):
     retrieval_count = Column(Integer, default=0)
 
 # Set connection/session for global use
+
 def set_session(session):
+    """Set the global database session."""
     global current_session
     current_session = session
 
+
 @contextmanager
 def get_session():
+    """Context manager for database session handling."""
     global current_session
     if current_session:
         yield current_session
