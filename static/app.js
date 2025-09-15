@@ -98,18 +98,62 @@ class SocketIOManager {
     }
 
     setupFormHandlers() {
+        // Simple CAPTCHA setup
+        function generateCaptchaCode(length = 2) {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let code = '';
+            for (let i = 0; i < length; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+
+        let currentCaptcha = generateCaptchaCode();
+        const captchaCodeDiv = document.getElementById('captcha-code');
+        if (captchaCodeDiv) {
+            captchaCodeDiv.textContent = currentCaptcha;
+            captchaCodeDiv.style.userSelect = 'none';
+            captchaCodeDiv.style.webkitUserSelect = 'none';
+            captchaCodeDiv.style.MozUserSelect = 'none';
+        }
+
         // Save form handler
         const saveForm = document.querySelector('#save-tab form');
         if (saveForm) {
             saveForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const textarea = saveForm.querySelector('textarea');
+                const captchaInput = document.getElementById('captcha-input');
+                if (!captchaInput || captchaInput.value.trim().toUpperCase() !== currentCaptcha) {
+                    alert('CAPTCHA code incorrect. Please try again.');
+                    // Regenerate code on failure
+                    currentCaptcha = generateCaptchaCode();
+                    if (captchaCodeDiv) captchaCodeDiv.textContent = currentCaptcha;
+                    captchaInput.value = '';
+                    return;
+                }
                 if (textarea && textarea.value.trim()) {
                     this.socket.emit('save_text', {
-                        content: textarea.value
+                        content: textarea.value,
+                        captcha_input: captchaInput.value.trim().toUpperCase(),
+                        captcha_code: currentCaptcha
                     });
+                    // Regenerate code after submit
+                    currentCaptcha = generateCaptchaCode();
+                    if (captchaCodeDiv) captchaCodeDiv.textContent = currentCaptcha;
+                    captchaInput.value = '';
                 }
             });
+        }
+
+        // Retrieve CAPTCHA setup
+        let currentCaptchaRetrieve = generateCaptchaCode();
+        const captchaCodeDivRetrieve = document.getElementById('captcha-code-retrieve');
+        if (captchaCodeDivRetrieve) {
+            captchaCodeDivRetrieve.textContent = currentCaptchaRetrieve;
+            captchaCodeDivRetrieve.style.userSelect = 'none';
+            captchaCodeDivRetrieve.style.webkitUserSelect = 'none';
+            captchaCodeDivRetrieve.style.MozUserSelect = 'none';
         }
 
         // Retrieve form handler
@@ -118,8 +162,25 @@ class SocketIOManager {
             retrieveForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const input = retrieveForm.querySelector('input');
+                const captchaInputRetrieve = document.getElementById('captcha-input-retrieve');
+                if (!captchaInputRetrieve || captchaInputRetrieve.value.trim().toUpperCase() !== currentCaptchaRetrieve) {
+                    alert('CAPTCHA code incorrect. Please try again.');
+                    // Regenerate code on failure
+                    currentCaptchaRetrieve = generateCaptchaCode();
+                    if (captchaCodeDivRetrieve) captchaCodeDivRetrieve.textContent = currentCaptchaRetrieve;
+                    captchaInputRetrieve.value = '';
+                    return;
+                }
                 if (input && input.value.trim()) {
-                    this.socket.emit('retrieve_text', input.value.trim());
+                    this.socket.emit('retrieve_text', {
+                        lookup_id: input.value.trim(),
+                        captcha_input: captchaInputRetrieve.value.trim().toUpperCase(),
+                        captcha_code: currentCaptchaRetrieve
+                    });
+                    // Regenerate code after submit
+                    currentCaptchaRetrieve = generateCaptchaCode();
+                    if (captchaCodeDivRetrieve) captchaCodeDivRetrieve.textContent = currentCaptchaRetrieve;
+                    captchaInputRetrieve.value = '';
                 }
             });
         }
@@ -163,10 +224,27 @@ class SocketIOManager {
         const card = document.createElement('div');
         card.className = 'container result';
         card.innerHTML = `
-            <h2>Retrieved your text using the ID: ${id}</h2>
-            <div class="card-content">${content}</div>
+            <div>Text retrieved using ID: ${id}</div>
+            <div class="card-content" id="retrieved-content">${content}</div>
+            <button id="copy-btn" style="margin-top:1em; padding:0.5em 1.2em; font-size:1em; border-radius:6px; background:#6366f1; color:#fff; border:none; cursor:pointer;">Copy to Clipboard</button>
         `;
         container.insertAdjacentElement('afterend', card);
+        // Add copy-to-clipboard functionality
+        const copyBtn = card.querySelector('#copy-btn');
+        const retrievedContent = card.querySelector('#retrieved-content');
+        if (copyBtn && retrievedContent) {
+            copyBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(retrievedContent.textContent)
+                    .then(() => {
+                        copyBtn.textContent = 'Copied!';
+                        setTimeout(() => { copyBtn.textContent = 'Copy to Clipboard'; }, 1200);
+                    })
+                    .catch(() => {
+                        copyBtn.textContent = 'Failed to copy';
+                        setTimeout(() => { copyBtn.textContent = 'Copy to Clipboard'; }, 1200);
+                    });
+            });
+        }
     }
 
     showError(message) {
@@ -308,4 +386,6 @@ document.addEventListener('DOMContentLoaded', () => {
         autoResize(textarea);
         textarea.addEventListener('input', () => autoResize(textarea));
     });
+    select_savetab = document.querySelector('#select_savetab');
+    select_savetab.click();
 });

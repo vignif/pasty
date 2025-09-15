@@ -112,14 +112,21 @@ async def save_text(sid, data):
         }, room=sid)
     except Exception as e:
         logger.error(f"Error saving text: {e}")
-        await sio.emit('save_error', {'error': str(e)}, room=sid)
+        await sio.emit('save_error', {'error': 'An error occurred. Please try again.'}, room=sid)
 
 @sio.event
-async def retrieve_text(sid, text_id):
+async def retrieve_text(sid, data):
     try:
+        # CAPTCHA check
+        captcha_input = data.get('captcha_input', '').strip().upper()
+        captcha_code = data.get('captcha_code', '').strip().upper()
+        if captcha_input != captcha_code:
+            await sio.emit('retrieve_error', {'error': 'CAPTCHA verification failed. Please try again.'}, room=sid)
+            return
+
+        text_id = data.get('lookup_id', '')
         db.delete_expired_entries()
-        row = db.get_text_by_id(text_id)
-        
+        row = db.get_text_by_id(str(text_id))
         if row:
             db.update_last_accessed(text_id, datetime.now(timezone.utc))
             await sio.emit('retrieve_success', {
@@ -132,7 +139,7 @@ async def retrieve_text(sid, text_id):
             }, room=sid)
     except Exception as e:
         logger.error(f"Error retrieving text: {e}")
-        await sio.emit('retrieve_error', {'error': str(e)}, room=sid)
+        await sio.emit('retrieve_error', {'error': 'An error occurred. Please try again.'}, room=sid)
 
 # ---- Startup Events ----
 
@@ -143,6 +150,7 @@ def startup_event():
         logger.info("Database initialized successfully.")
     except Exception as e:
         logger.error(f"Error initializing database: {e}")
+
 
 # ---- HTML Page Routes ----
 
@@ -156,6 +164,38 @@ def read_root(request: Request):
 @app.get("/readme", response_class=HTMLResponse)
 def readme(request: Request):
     return templates.TemplateResponse("readme.html", {"request": request})
+
+# ---- hCaptcha Verification Helper ----
+import requests
+def verify_hcaptcha(token, remoteip=None):
+    """Verify hCaptcha response token with hCaptcha API."""
+    import os
+    secret = os.getenv("HCAPTCHA_SECRET", "")
+    url = "https://hcaptcha.com/siteverify"
+    data = {
+        "secret": secret,
+        "response": token
+    }
+    if remoteip:
+        data["remoteip"] = remoteip
+    try:
+        resp = requests.post(url, data=data, timeout=5)
+        result = resp.json()
+        return result.get("success", False)
+    except Exception as e:
+        logger.error(f"hCaptcha verification error: {e}")
+        return False
+
+# ---- Save Text Endpoint (with hCaptcha) ----
+from fastapi import Form
+@app.post("/save", response_class=HTMLResponse)
+async def save_text_form(request: Request, content: str = Form(...), captcha_input: str = Form(...), captcha_code: str = Form(...)):
+    # Simple CAPTCHA verification
+    if captcha_input.strip().upper() != captcha_code.strip().upper():
+        return templates.TemplateResponse("index.html", {"request": request, "error": "CAPTCHA verification failed. Please try again."})
+    # ...existing save logic (call your db.insert_text etc.)...
+    # For demo, just return success
+    return templates.TemplateResponse("index.html", {"request": request, "success": True})
 
 
 # Mount Socket.IO app

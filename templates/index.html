@@ -8,7 +8,7 @@
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
 <body>
-    <div class="container">
+    <div class="container" style="padding-top: 0;">
         <div class="logo">
             <a href="/">
                 <img src="{{ url_for('static', path='logo.png') }}" alt="Pasty Logo">
@@ -28,7 +28,7 @@
 
         <!-- Tab Navigation -->
         <div class="tabs">
-            <button class="tab active" onclick="switchTab(event, 'save-tab')">Save Text</button>
+            <button id = "select_savetab" class="tab active" onclick="switchTab(event, 'save-tab')">Save Text</button>
             <button class="tab" onclick="switchTab(event, 'retrieve-tab')">Retrieve Text</button>
         </div>
 
@@ -44,19 +44,31 @@
                     data-autoresize
                     style="width: 100%; resize: none; overflow: hidden;"
                 ></textarea>
-                <div class="row">
+                <div class="row" style="display:flex; align-items:center; gap:1.5rem;">
+                    <div class="captcha-box" style="display:flex; align-items:center; gap:1rem; background:#f8f8ff; border-radius:10px; box-shadow:0 2px 8px rgba(79,70,229,0.07); margin:0;">
+                        <span style="font-size:1.1em; color:#6366f1; font-weight:600; margin-right:0.5em;">Human check:</span>
+                        <div id="captcha-code" style="font-size:1.6em; font-weight:700; letter-spacing:6px; color:#312e81; background:#eef2ff; padding:0.3em 1em; border-radius:8px; user-select:none; -webkit-user-select:none; -moz-user-select:none; box-shadow:0 1px 4px rgba(79,70,229,0.10);"></div>
+                        <input type="text" id="captcha-input" name="captcha_input" placeholder="Type code" required autocomplete="off" style="width:110px; font-size:1.1em; padding:0.3em 0.7em; border-radius:6px; border:1px solid #d1d5db; background:#fff;">
+                    </div>
                     <button type="submit">Save</button>
                     <div class="char-count"><span id="charCount">0</span>/2000 characters</div>
+                    <div class="">Total rows: <p id="row-count" style="display: inline;">: ...</p></div>   
                 </div>
-                <div style="margin-top: 1rem;">Total rows: <p id="row-count" style="display: inline;">: ...</p></div>
-            </form>          
+            </form>
         </div>
 
         <!-- Tab Content for Retrieving Text -->
         <div id="retrieve-tab" class="tab-content">
             <form id="retrieve-form">
                 <input type="text" name="lookup_id" placeholder="Enter your ID" required>
-                <button type="submit">Retrieve</button>
+                <div class="row" style="display:flex; align-items:center; gap:1.5rem;">
+                    <div class="captcha-box" style="display:flex; align-items:center; gap:1rem; background:#f8f8ff; border-radius:10px; padding:1rem 1.5rem; box-shadow:0 2px 8px rgba(79,70,229,0.07); margin:0;">
+                        <span style="font-size:1.1em; color:#6366f1; font-weight:600; margin-right:0.5em;">Human check:</span>
+                        <div id="captcha-code-retrieve" style="font-size:1.6em; font-weight:700; letter-spacing:6px; color:#312e81; background:#eef2ff; padding:0.3em 1em; border-radius:8px; user-select:none; -webkit-user-select:none; -moz-user-select:none; box-shadow:0 1px 4px rgba(79,70,229,0.10);"></div>
+                        <input type="text" id="captcha-input-retrieve" name="captcha_input_retrieve" placeholder="Type code" required autocomplete="off" style="width:110px; font-size:1.1em; padding:0.3em 0.7em; border-radius:6px; border:1px solid #d1d5db; background:#fff;">
+                    </div>
+                    <button type="submit">Retrieve</button>
+                </div>
             </form>
         </div>
         <div id="connection-status" class="connection-status">
@@ -69,6 +81,7 @@
         </div>
     </div>
 
+    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
     <script src="{{ url_for('static', path='app.js') }}"></script>
 
     <footer class="footer">

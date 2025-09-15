@@ -9,3 +9,4 @@ mangum
 python-socketio
 sqlalchemy
 pytest-cov
+requests

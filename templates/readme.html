@@ -31,7 +31,6 @@
         display: block;
         margin: 0 auto 2rem auto;
         width: 120px;
-        filter: drop-shadow(0 2px 8px rgba(79, 70, 229, 0.12));
       }
       .badge-row {
         display: flex;
@@ -46,12 +45,15 @@
 </head>
 <body>
   <div class="readme-container">
-    <img src="/static/logo.png" alt="Logo" class="readme-logo" />
-    <h1>Pasty: Copy and Paste Online</h1>
-    <p>A simple online clipboard to easily move text between two machines connected to the internet.<br>
-    When you save your text you will get a unique identifier of it.<br>
-    To retrieve your text just use the identifier.<br>
-    A FastAPI-based application to store and retrieve short text snippets using SQLite.</p>
+    <a href="/"><img src="/static/logo.png" alt="Logo" class="readme-logo" /></a>
+  <h1>Pasty: Why is it Smart?</h1>
+  <p>Pasty uses a unique approach for generating text IDs: every ID is a pair of adjacent characters from a standard QWERTY keyboard row. This means IDs are always easy to type and remember, and are physically close together on your keyboard.<br><br>
+  <strong>How does it work?</strong><br>
+  - When you save text, you get a 2-character ID (like <code>AS</code>, <code>JK</code>, <code>UI</code>, etc.)<br>
+  - Only pairs of letters that are next to each other on a QWERTY row are used.<br>
+  - After an ID is used to retrieve text twice, that entry is deleted for privacy.<br>
+  <br>
+  This logic makes Pasty smart, memorable, and secure for quick copy-paste tasks between devices.</p>
     <div class="badge-row">
       <img src="https://github.com/vignif/pasty/actions/workflows/test.yml/badge.svg" alt="Tests" />
       <img src="https://img.shields.io/badge/Demo-online-blue?logo=fastapi" alt="Demo" />

@@ -34,7 +34,7 @@ class Text(Base):
     """SQLAlchemy model for text entries."""
     __tablename__ = 'texts'
 
-    id = Column(String(4), primary_key=True)
+    id = Column(String(2), primary_key=True)
     content = Column(String)
     created_at = Column(DateTime, default=func.now())
     last_accessed = Column(DateTime)
@@ -67,9 +67,19 @@ def initialize_db():
     Base.metadata.create_all(engine)
 
 def generate_unique_id():
-    """Generate a unique 4-character ID using only uppercase letters."""
+    """Generate a unique 2-character ID using adjacent QWERTY keys."""
+    # QWERTY adjacent pairs (horizontal only, for simplicity)
+    qwerty_rows = [
+        "QWERTYUIOP",
+        "ASDFGHJKL",
+        "ZXCVBNM"
+    ]
+    pairs = []
+    for row in qwerty_rows:
+        for i in range(len(row)-1):
+            pairs.append(row[i:i+2])
     while True:
-        id_ = "".join(random.choices(string.ascii_uppercase, k=4))
+        id_ = random.choice(pairs)
         if not id_exists(id_):
             return id_
 
@@ -81,13 +91,18 @@ def insert_text(id_, content, created_at, last_accessed, ip_address):
         session.commit()
 
 def get_text_by_id(id_):
-    """Retrieve text content by ID and increment retrieval count."""
+    """Retrieve text content by ID and increment retrieval count. Clear DB after 2 retrievals."""
     with get_session() as session:
         text = session.query(Text).filter_by(id=id_).first()
         if text:
             text.retrieval_count += 1
             session.commit()
-            return text.content
+            content = text.content
+            if text.retrieval_count >= 2:
+                # Delete only this entry from DB
+                session.delete(text)
+                session.commit()
+            return content
         return None
 
 def update_last_accessed(id_, timestamp):
