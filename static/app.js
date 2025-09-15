@@ -257,8 +257,7 @@ class SocketIOManager {
         const card = document.createElement('div');
         card.className = 'container result error-card';
         card.innerHTML = `
-            <h1>Error</h1>    
-            <h2>${message}</h2>
+            <h3>Error: ${message}</h3>
         `;
         container.insertAdjacentElement('afterend', card);
     }
