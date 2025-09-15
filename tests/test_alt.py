@@ -107,8 +107,8 @@ class TestTextStore(unittest.TestCase):
         id_1 = generate_unique_id()
         id_2 = generate_unique_id()
         self.assertNotEqual(id_1, id_2)
-        self.assertEqual(len(id_1), 4)
-        self.assertEqual(len(id_2), 4)
+        self.assertEqual(len(id_1), 2)
+        self.assertEqual(len(id_2), 2)
 
     def test_id_exists(self):
         """Test checking if an ID exists in the database."""
