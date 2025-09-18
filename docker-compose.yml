@@ -5,10 +5,11 @@ services:
     build: .
     container_name: pasty
     ports:
-      - "6001:6001"
+      - "127.0.0.1:8001:6001"
     volumes:
       - .:/app
     environment:
       - PYTHONUNBUFFERED=1
       - TZ=Europe/Rome
+      - ROOT_PATH=/pasty
     restart: unless-stopped

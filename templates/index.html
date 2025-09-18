@@ -6,11 +6,12 @@
     <title>Pasty</title>
     <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <meta name="app-root-path" content="{{ request.scope.get('root_path', '') }}">
 </head>
 <body>
     <div class="container" style="padding-top: 0;">
         <div class="logo">
-            <a href="/">
+            <a href="{{ url_for('read_root') }}">
                 <img src="{{ url_for('static', path='logo.png') }}" alt="Pasty Logo">
             </a>
         </div>
@@ -22,9 +23,9 @@
             The information will be stored up to 12 hours.
         </p>
         <hr>
-        <p>
-             Why is it <a href="/readme" >smart</a>?
-        </p>
+       <p>
+           Why is it <a href="{{ url_for('readme') }}" >smart</a>?
+       </p>
 
         <!-- Tab Navigation -->
         <div class="tabs">

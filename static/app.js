@@ -22,15 +22,18 @@ class SocketIOManager {
     connectSocket() {
         this.updateConnectionStatus('connecting');
         
-        const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-        const socketUrl = protocol + window.location.host;
+        const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://' ;
+        const rootMeta = document.querySelector('meta[name="app-root-path"]');
+        const rootPath = (rootMeta && rootMeta.content) ? rootMeta.content : '';
+        const socketUrl = protocol + window.location.host + rootPath;
         console.log(`Connecting to Socket.IO at ${socketUrl}`);
-        
+
         this.socket = io(socketUrl, {
             reconnectionAttempts: this.maxReconnectAttempts,
             reconnectionDelay: this.reconnectDelay,
             reconnection: this.autoReconnect,
-            transports: ['websocket']
+            transports: ['websocket'],
+            path: rootPath.replace(/\/$/, '') + '/socket.io'
         });
 
         this.socket.on('connect', () => {
