@@ -9,7 +9,7 @@ main.py
 Entry point for the Pasty FastAPI application. Handles routing, background tasks, and integrates Socket.IO for real-time updates.
 """
 
-from fastapi import FastAPI, Request, APIRouter, Form
+from fastapi import FastAPI, Request, APIRouter, Form, Response
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -169,6 +169,10 @@ def startup_event():
 
 
 # ---- HTML Page Routes ----
+
+@app.head("/")
+def head_root():
+    return Response(status_code=200)
 
 @app.get("/", response_class=HTMLResponse)
 def read_root(request: Request):

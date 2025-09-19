@@ -18,7 +18,7 @@ RUN rm -rf store.db
 COPY . .
 
 # Expose app port
-EXPOSE 6001
+EXPOSE 8001
 
 # Run with uvicorn, trusting proxy headers (X-Forwarded-*) from Caddy
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "6001", "--workers", "4", "--proxy-headers", "--forwarded-allow-ips", "*"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "4", "--proxy-headers", "--forwarded-allow-ips", "*"]

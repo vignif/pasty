@@ -5,11 +5,16 @@ services:
     build: .
     container_name: pasty
     ports:
-      - "127.0.0.1:8001:6001"
+      - "127.0.0.1:8001:8001"
     volumes:
       - .:/app
     environment:
       - PYTHONUNBUFFERED=1
       - TZ=Europe/Rome
       - ROOT_PATH=/pasty
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8001/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     restart: unless-stopped
