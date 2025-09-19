@@ -38,6 +38,14 @@ router = APIRouter()
 # Mount static directory for JS, CSS, etc.
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# Optional: also mount static under an alternate prefix if the proxy doesn't strip
+ALT_STATIC_PREFIX = os.getenv("ALT_STATIC_PREFIX", "").rstrip("/")
+if ALT_STATIC_PREFIX:
+    mount_path = f"{ALT_STATIC_PREFIX}/static"
+    if not mount_path.startswith("/"):
+        mount_path = "/" + mount_path
+    app.mount(mount_path, StaticFiles(directory="static"), name="static_alt")
+
 # Jinja2 templates directory
 templates = Jinja2Templates(directory="templates")
 
