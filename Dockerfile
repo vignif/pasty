@@ -21,4 +21,4 @@ COPY . .
 EXPOSE 8001
 
 # Run with uvicorn, trusting proxy headers (X-Forwarded-*) from Caddy
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "4", "--proxy-headers", "--forwarded-allow-ips", "*"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "1", "--proxy-headers", "--forwarded-allow-ips", "*"]

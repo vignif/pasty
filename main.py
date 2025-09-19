@@ -35,13 +35,18 @@ sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins=[])
 socket_app = socketio.ASGIApp(sio)
 
 # FastAPI app and router
-# Support deployment under a path prefix (e.g., /pasty) via ROOT_PATH env.
+# Keep app root_path empty so backend routes like /static work when the proxy strips prefixes.
 ROOT_PATH = os.getenv("ROOT_PATH", "")
-app = FastAPI(root_path=ROOT_PATH)
+app = FastAPI(root_path="")
 router = APIRouter()
 
+# Resolve absolute directories for static files and templates to be robust to CWD
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
+
 # Mount static directory for JS, CSS, etc.
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # Optional: also mount static under an alternate prefix if the proxy doesn't strip
 ALT_STATIC_PREFIX = os.getenv("ALT_STATIC_PREFIX", "").rstrip("/")
@@ -49,21 +54,27 @@ if ALT_STATIC_PREFIX:
     mount_path = f"{ALT_STATIC_PREFIX}/static"
     if not mount_path.startswith("/"):
         mount_path = "/" + mount_path
-    app.mount(mount_path, StaticFiles(directory="static"), name="static_alt")
+    app.mount(mount_path, StaticFiles(directory=STATIC_DIR), name="static_alt")
 
 # Jinja2 templates directory
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=TEMPLATES_DIR)
+
+# Provide PUBLIC_ROOT to templates for building absolute asset URLs under a prefix
+PUBLIC_ROOT = os.getenv("PUBLIC_ROOT", ROOT_PATH).rstrip("/")
+if PUBLIC_ROOT and not PUBLIC_ROOT.startswith("/"):
+    PUBLIC_ROOT = "/" + PUBLIC_ROOT
+ASSET_VER = os.getenv("ASSET_VER") or str(int(os.environ.get("START_TIME", "0") or __import__("time").time()))
+templates.env.globals.update({
+    "PUBLIC_ROOT": PUBLIC_ROOT,
+    "ASSET_VER": ASSET_VER,
+})
 
 # Middleware to respect X-Forwarded-Prefix from Caddy and similar proxies
+# Prefix middleware is not required when using app.root_path and a proxy that strips the prefix.
+# Leaving implementation here for reference but not registering it to avoid route mismatches.
 class PrefixMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
-        prefix = request.headers.get('x-forwarded-prefix') or request.headers.get('X-Forwarded-Prefix')
-        if prefix:
-            request.scope['root_path'] = prefix.rstrip('/')
-        response = await call_next(request)
-        return response
-
-app.add_middleware(PrefixMiddleware)
+        return await call_next(request)
 
 # ---- Models ----
 

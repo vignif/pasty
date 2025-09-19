@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pasty</title>
-    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <link rel="stylesheet" href="{{ PUBLIC_ROOT }}/static/style.css?v={{ ASSET_VER }}">
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <meta name="app-root-path" content="{{ request.scope.get('root_path', '') }}">
+    <meta name="public-root" content="{{ PUBLIC_ROOT }}">
 </head>
 <body>
     <div class="container" style="padding-top: 0;">
         <div class="logo">
             <a href="{{ url_for('read_root') }}">
-                <img src="{{ url_for('static', path='logo.png') }}" alt="Pasty Logo">
+                <img src="{{ PUBLIC_ROOT }}/static/logo.png?v={{ ASSET_VER }}" alt="Pasty Logo">
             </a>
         </div>
         <p>Pasty is smart online clipboard to store and retrieve text. All text is stored in a SQLite database. 
@@ -83,7 +83,7 @@
     </div>
 
     <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
-    <script src="{{ url_for('static', path='app.js') }}"></script>
+    <script src="{{ PUBLIC_ROOT }}/static/app.js?v={{ ASSET_VER }}"></script>
 
     <footer class="footer">
         <p>
