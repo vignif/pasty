@@ -9,12 +9,14 @@ from fastapi import FastAPI, Request, APIRouter
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import BaseModel
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 import socketio
 import db
 import logging
+import os
 
 # Load environment variables
 load_dotenv()
@@ -28,7 +30,9 @@ sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins=[])
 socket_app = socketio.ASGIApp(sio)
 
 # FastAPI app and router
-app = FastAPI()
+# Support deployment under a path prefix (e.g., /pasty) via ROOT_PATH env and/or proxy header
+ROOT_PATH = os.getenv("ROOT_PATH", "")
+app = FastAPI(root_path=ROOT_PATH)
 router = APIRouter()
 
 # Mount static directory for JS, CSS, etc.
@@ -36,6 +40,17 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Jinja2 templates directory
 templates = Jinja2Templates(directory="templates")
+
+# Middleware to respect X-Forwarded-Prefix from Caddy and similar proxies
+class PrefixMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        prefix = request.headers.get('x-forwarded-prefix') or request.headers.get('X-Forwarded-Prefix')
+        if prefix:
+            request.scope['root_path'] = prefix.rstrip('/')
+        response = await call_next(request)
+        return response
+
+app.add_middleware(PrefixMiddleware)
 
 # ---- Models ----
 
