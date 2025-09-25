@@ -5,7 +5,7 @@ api/fastapi_app.py
 FastAPI application for Pasty serverless deployment. Handles API endpoints, background tasks, and integrates Socket.IO for real-time updates.
 """
 
-from fastapi import FastAPI, Request, APIRouter
+from fastapi import FastAPI, Request, APIRouter, HTTPException, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -17,6 +17,8 @@ import socketio
 import db
 import logging
 import os
+import asyncio
+import time
 
 # Load environment variables
 load_dotenv()
@@ -82,6 +84,37 @@ async def update_row_count():
         await sio.emit('count_update', {'count': row_count})
     except Exception as e:
         logger.error(f"Failed to update row count: {e}")
+
+# ---- Simple Rate Limiter (30 per minute) ----
+RATE_LIMIT_PER_MINUTE = 30
+_rate_buckets = {}
+_rate_lock = asyncio.Lock()
+
+def _client_ip(request: Request) -> str:
+    ip = request.headers.get('cf-connecting-ip')
+    if not ip:
+        xff = request.headers.get('x-forwarded-for')
+        if xff:
+            ip = xff.split(',')[0].strip()
+    if not ip:
+        ip = request.headers.get('x-real-ip')
+    if not ip and request.client:
+        ip = request.client.host
+    return ip or 'unknown'
+
+async def rate_limit_ping(request: Request):
+    now = int(time.time())
+    window = now // 60
+    ip = _client_ip(request)
+    key = (ip, window)
+    async with _rate_lock:
+        for (k_ip, k_win) in list(_rate_buckets.keys()):
+            if k_win < window - 1:
+                _rate_buckets.pop((k_ip, k_win), None)
+        count = _rate_buckets.get(key, 0) + 1
+        _rate_buckets[key] = count
+        if count > RATE_LIMIT_PER_MINUTE:
+            raise HTTPException(status_code=429, detail="Rate limit exceeded")
 
 # ---- Socket.IO Events ----
 
@@ -178,6 +211,10 @@ def read_me(request: Request):
         "request": request,
         "EXPIRATION_HOURS": db.EXPIRATION_HOURS
     })
+
+@app.get("/ping")
+async def ping_route(_: None = Depends(rate_limit_ping)):
+    return {"status": "ok"}
 
 # Mount Socket.IO app
 app.mount("/socket.io", socket_app)

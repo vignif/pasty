@@ -9,7 +9,7 @@ main.py
 Entry point for the Pasty FastAPI application. Handles routing, background tasks, and integrates Socket.IO for real-time updates.
 """
 
-from fastapi import FastAPI, Request, APIRouter, Form, Response
+from fastapi import FastAPI, Request, APIRouter, Form, Response, Depends, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -19,6 +19,8 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 import requests
 import os
+import asyncio
+import time
 import socketio
 import db
 import logging
@@ -98,6 +100,42 @@ async def update_row_count():
         await sio.emit('count_update', {'count': row_count})
     except Exception as e:
         logger.error(f"Failed to update row count: {e}")
+
+# ---- Simple Rate Limiter (30 per minute) ----
+RATE_LIMIT_PER_MINUTE = 30
+_rate_buckets = {}
+_rate_lock = asyncio.Lock()
+
+def _client_ip(request: Request) -> str:
+    # Prefer Cloudflare and proxy headers; fallback to client host
+    ip = request.headers.get('cf-connecting-ip')
+    if not ip:
+        xff = request.headers.get('x-forwarded-for')
+        if xff:
+            ip = xff.split(',')[0].strip()
+    if not ip:
+        ip = request.headers.get('x-real-ip')
+    if not ip and request.client:
+        ip = request.client.host
+    return ip or 'unknown'
+
+async def rate_limit_ping(request: Request):
+    now = int(time.time())
+    window = now // 60  # per-minute fixed window
+    ip = _client_ip(request)
+    key = (ip, window)
+    async with _rate_lock:
+        # Cleanup old windows for this IP
+        # (optional light cleanup across all keys)
+        for (k_ip, k_win) in list(_rate_buckets.keys()):
+            if k_win < window - 1:
+                _rate_buckets.pop((k_ip, k_win), None)
+
+        count = _rate_buckets.get(key, 0) + 1
+        _rate_buckets[key] = count
+        if count > RATE_LIMIT_PER_MINUTE:
+            # Too Many Requests
+            raise HTTPException(status_code=429, detail="Rate limit exceeded")
 
 # ---- Socket.IO Events ----
 
@@ -188,6 +226,11 @@ def startup_event():
 
 
 # ---- HTML Page Routes ----
+
+@app.get("/ping")
+async def ping_route(_: None = Depends(rate_limit_ping)):
+    # trivial health/rate-limited endpoint
+    return {"status": "ok"}
 
 @app.head("/")
 def head_root():
